@@ -1,0 +1,73 @@
+# Production stack for a single VPS.
+# Only Caddy is published (80/443, automatic HTTPS); db, backend and frontend stay
+# on the internal Docker network. Docker-published ports bypass ufw, so nothing
+# else may be published here.
+#
+# Usage (on the server, from the repo root):
+#   cp deploy/production.env.example .env.production   # then fill it in
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: roaster
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: assignment_roaster
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U roaster -d assignment_roaster"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      DATABASE_URL: postgresql://roaster:${POSTGRES_PASSWORD}@db:5432/assignment_roaster
+      ENVIRONMENT: production
+      FRONTEND_URL: https://${DOMAIN:?set DOMAIN in .env.production}
+      BACKEND_URL: https://${DOMAIN}
+      CORS_ORIGINS: '["https://${DOMAIN}"]'
+    # Trust X-Forwarded-* from Caddy so client IPs (rate limits) and https are correct.
+    # Safe because the backend is reachable only from the internal network.
+    command: ["--proxy-headers", "--forwarded-allow-ips=*"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Empty = same origin: the SPA calls /api/v1 on the same HTTPS domain.
+        VITE_API_URL: ""
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  postgres_data:
+  caddy_data:
+  caddy_config:

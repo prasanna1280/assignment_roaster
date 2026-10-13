@@ -98,6 +98,27 @@ Log out and back in, and an **Admin** link appears in the navbar.
 
 ---
 
+## Deploy to a VPS (HTTPS)
+
+`docker-compose.prod.yml` runs the whole app behind [Caddy](https://caddyserver.com), which gets and renews a Let's Encrypt certificate automatically. Only ports 80 and 443 are published; the database and backend stay on Docker's internal network.
+
+1. Point your domain's DNS **A record** at the server's IP.
+2. On the server (Ubuntu/Debian with Docker installed):
+
+   ```bash
+   git clone https://github.com/prasanna1280/assignment_roaster.git
+   cd assignment_roaster
+   cp deploy/production.env.example .env.production
+   # Fill in DOMAIN, POSTGRES_PASSWORD, SECRET_KEY, OPENAI_API_KEY, Google OAuth
+   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+   ```
+
+3. In Google Cloud, add `https://<your-domain>` as a JavaScript origin and `https://<your-domain>/api/v1/auth/google/callback` as a redirect URI.
+
+To update later: `git pull`, then run the same `docker compose ... up -d --build` command.
+
+---
+
 ## Local development (without Docker)
 
 **Backend** (needs a running PostgreSQL and a `.env` in the repo root):
