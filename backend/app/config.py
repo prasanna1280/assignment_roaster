@@ -2,7 +2,7 @@
 
 import json
 from functools import lru_cache
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
@@ -46,6 +46,9 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o"
+    # Reasoning models only (e.g. gpt-5.x). Empty = don't send the parameter, which
+    # older models such as gpt-4o reject.
+    OPENAI_REASONING_EFFORT: Literal["", "minimal", "low", "medium", "high"] = ""
 
     ROAST_DAILY_LIMIT: int = 5
     ROAST_MAX_FILES: int = 150
@@ -61,6 +64,12 @@ class Settings(BaseSettings):
                 return json.loads(stripped)
             return [origin.strip() for origin in stripped.split(",") if origin.strip()]
         return value
+
+    @field_validator("OPENAI_REASONING_EFFORT", mode="before")
+    @classmethod
+    def _normalize_reasoning_effort(cls, value: Any) -> Any:
+        """Accept any case and surrounding whitespace, e.g. " Low "."""
+        return value.strip().lower() if isinstance(value, str) else value
 
     @property
     def is_production(self) -> bool:

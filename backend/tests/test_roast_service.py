@@ -223,3 +223,78 @@ def test_new_file_paths_are_allowed() -> None:
     data["improvements"][0]["line_hint"] = "new file"
     assert RoastResult.model_validate(data).improvements[0].file == "tests/test_app.py"
     assert not is_placeholder_file("src/(group)/page.tsx")
+
+
+async def test_reasoning_effort_not_sent_by_default(snapshot: RepoSnapshot) -> None:
+    client = FakeOpenAIClient([make_completion(valid_roast_dict())])
+    await roast_service.generate_roast(snapshot, None, None, client)
+    assert "reasoning_effort" not in client.completions.calls[0]
+
+
+async def test_reasoning_effort_sent_when_configured(
+    snapshot: RepoSnapshot, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(settings, "OPENAI_REASONING_EFFORT", "low")
+    bad = valid_roast_dict(overall_score=42)
+    client = FakeOpenAIClient([make_completion(bad), make_completion(valid_roast_dict())])
+    await roast_service.generate_roast(snapshot, None, None, client)
+    # Sent on the first attempt and on the retry.
+    assert [call["reasoning_effort"] for call in client.completions.calls] == ["low", "low"]
+
+
+def test_reasoning_effort_setting_is_validated() -> None:
+    from pydantic import ValidationError
+
+    from app.config import Settings
+
+    assert Settings(OPENAI_REASONING_EFFORT=" Low ").OPENAI_REASONING_EFFORT == "low"
+    assert Settings(OPENAI_REASONING_EFFORT="").OPENAI_REASONING_EFFORT == ""
+    with pytest.raises(ValidationError):
+        Settings(OPENAI_REASONING_EFFORT="turbo")
+
+
+TAMIL_WORD = "\u0b92\u0bb0\u0bc7"  # "orae" written in Tamil script
+
+
+@pytest.mark.parametrize("field", ["headline", "roast_text", "strength", "suggestion"])
+async def test_tamil_script_is_retried(snapshot: RepoSnapshot, field: str) -> None:
+    bad = valid_roast_dict()
+    if field == "strength":
+        bad["strengths"][0] += f" {TAMIL_WORD}"
+    elif field == "suggestion":
+        bad["improvements"][0]["suggestion"] += f" {TAMIL_WORD}"
+    else:
+        bad[field] = f"Machaan, {TAMIL_WORD} file la ellam irukku"
+    client = FakeOpenAIClient([make_completion(bad), make_completion(valid_roast_dict())])
+    generation = await roast_service.generate_roast(snapshot, None, None, client)
+
+    assert TAMIL_WORD not in generation.result.headline + generation.result.roast_text
+    correction = client.completions.calls[1]["messages"][-1]["content"]
+    assert "Latin letters" in correction
+
+
+async def test_tamil_script_twice_is_accepted_not_failed(snapshot: RepoSnapshot) -> None:
+    bad = valid_roast_dict(headline=f"Machaan, {TAMIL_WORD} file la ellam irukku")
+    client = FakeOpenAIClient([make_completion(bad), make_completion(bad)])
+    generation = await roast_service.generate_roast(snapshot, None, None, client)
+
+    # A style slip must not cost the student a roast: retried once, then accepted.
+    assert len(client.completions.calls) == 2
+    assert TAMIL_WORD in generation.result.headline
+    assert (generation.input_tokens, generation.output_tokens) == (200, 100)
+
+
+async def test_schema_errors_still_fail_after_retry(snapshot: RepoSnapshot) -> None:
+    bad = valid_roast_dict(headline=f"{TAMIL_WORD} " + "x" * 300)
+    client = FakeOpenAIClient([make_completion(bad), make_completion(bad)])
+    with pytest.raises(roast_service.RoastGenerationError):
+        await roast_service.generate_roast(snapshot, None, None, client)
+
+
+def test_tanglish_in_latin_letters_is_accepted() -> None:
+    from app.schemas.roast import RoastResult, contains_tamil_script
+
+    data = valid_roast_dict(headline="Machaan, orae file la ellam irukku, semma!")
+    assert RoastResult.model_validate(data).headline.startswith("Machaan")
+    assert not contains_tamil_script("Vanakkam machaan! naan, cafe, emoji 🔥")
+    assert contains_tamil_script(TAMIL_WORD)

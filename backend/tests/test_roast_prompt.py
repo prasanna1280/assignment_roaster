@@ -48,6 +48,7 @@ def test_system_prompt_tanglish_and_file_rules() -> None:
         "exact path copied from <file_tree>",
         'never use placeholders such as "(project)"',
         "self-check before answering",
+        "never tamil script",
     ):
         assert phrase in lowered, phrase
     # The old escape hatch must be gone.

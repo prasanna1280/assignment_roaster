@@ -159,7 +159,8 @@ All settings come from environment variables. See [`.env.example`](.env.example)
 | `DATABASE_URL` | yes | | PostgreSQL connection string (docker compose sets this for you) |
 | `SECRET_KEY` | yes | | JWT signing key. Generate one with `openssl rand -hex 32` |
 | `OPENAI_API_KEY` | yes | | Used to generate roasts |
-| `OPENAI_MODEL` | | `gpt-4o` | Model used for roasts |
+| `OPENAI_MODEL` | | `gpt-4o` | Model used for roasts. `gpt-5.5` gave the most natural Tanglish in testing |
+| `OPENAI_REASONING_EFFORT` | | empty | `minimal`/`low`/`medium`/`high` for reasoning models (e.g. `low` with `gpt-5.5` cuts tokens by about a third). Leave empty for `gpt-4o` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | for Google login | | Redirect URI: `http://localhost:8000/api/v1/auth/google/callback` |
 | `GITHUB_TOKEN` | | empty | Fine-grained token with **no** permissions. Raises the GitHub limit from 60 to 5,000 requests/hour |
 | `ROAST_DAILY_LIMIT` | | `5` | Roasts per user per day (resets 00:00 UTC) |
