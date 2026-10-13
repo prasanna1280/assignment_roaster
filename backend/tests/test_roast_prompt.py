@@ -37,6 +37,23 @@ def test_system_prompt_covers_required_rules() -> None:
         assert phrase.lower() in lowered, phrase
 
 
+def test_system_prompt_tanglish_and_file_rules() -> None:
+    lowered = SYSTEM_PROMPT.lower()
+    for phrase in (
+        "tamil sentence structure",
+        "bad (english with a tamil garnish)",
+        "never call the",
+        "never use gendered terms",
+        "at most 140 characters",
+        "exact path copied from <file_tree>",
+        'never use placeholders such as "(project)"',
+        "self-check before answering",
+    ):
+        assert phrase in lowered, phrase
+    # The old escape hatch must be gone.
+    assert 'or "(project)" only when' not in SYSTEM_PROMPT
+
+
 def test_user_prompt_wraps_files_in_delimiters() -> None:
     prompt = build_user_prompt(
         _snapshot([RepoFile("src/app.py", "x = 1"), RepoFile('we"ird<.py', "y = 2")]),

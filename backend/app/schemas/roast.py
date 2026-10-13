@@ -13,7 +13,7 @@ Two families of models live here:
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, PlainSerializer
+from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
 Severity = Literal["low", "medium", "high"]
 
@@ -52,6 +52,20 @@ class Improvement(BaseModel):
     severity: Severity
 
 
+_PLACEHOLDER_FILES = frozenset(
+    {"", "-", "n/a", "na", "none", "project", "repo", "repository", "general", "various",
+     "multiple", "all", "all files", "entire project", "whole project", "codebase"}
+)
+
+
+def is_placeholder_file(path: str) -> bool:
+    """True for non-path file references like ``(project)``, ``N/A`` or ``various``."""
+    value = path.strip()
+    if value.startswith("(") and value.endswith(")"):
+        return True
+    return value.lower() in _PLACEHOLDER_FILES
+
+
 class RoastResult(BaseModel):
     """The full, validated roast returned by the AI."""
 
@@ -61,6 +75,19 @@ class RoastResult(BaseModel):
     roast_text: str = Field(min_length=1)
     strengths: list[str] = Field(min_length=1)
     improvements: list[Improvement] = Field(min_length=3, max_length=15)
+
+    # Checked here rather than on ``Improvement`` so roasts already stored with a
+    # placeholder still load through ``RoastResponse``.
+    @field_validator("improvements", mode="after")
+    @classmethod
+    def _require_real_file_paths(cls, value: list[Improvement]) -> list[Improvement]:
+        bad = [item.file for item in value if is_placeholder_file(item.file)]
+        if bad:
+            raise ValueError(
+                f"file must be a real path from the repo (or a new file to create), "
+                f"not a placeholder like {bad[0]!r}"
+            )
+        return value
 
 
 # --- LLM-facing schema (no numeric/length constraints) -----------------------

@@ -188,3 +188,38 @@ async def test_real_sdk_parse_path_with_mock_transport(snapshot: RepoSnapshot) -
     schema_text = json.dumps(body["response_format"]["json_schema"]["schema"])
     for keyword in ("minimum", "maximum", "minItems", "maxItems", "maxLength"):
         assert keyword not in schema_text
+
+
+@pytest.mark.parametrize("placeholder", ["(project)", "(repo-wide)", "N/A", "various", " Project "])
+async def test_placeholder_file_reference_is_retried(
+    snapshot: RepoSnapshot, placeholder: str
+) -> None:
+    bad = valid_roast_dict()
+    bad["improvements"][0]["file"] = placeholder
+    client = FakeOpenAIClient([make_completion(bad), make_completion(valid_roast_dict())])
+    generation = await roast_service.generate_roast(snapshot, None, None, client)
+
+    assert all(item.file != placeholder for item in generation.result.improvements)
+    correction = client.completions.calls[1]["messages"][-1]["content"]
+    assert "placeholder" in correction
+
+
+def test_stored_roast_with_placeholder_still_serializes() -> None:
+    from app.schemas.roast import RoastResponse
+
+    data = valid_roast_dict()
+    data["improvements"][0]["file"] = "(project)"
+    response = RoastResponse.model_validate(
+        {**data, "id": 1, "model_used": "gpt-test", "created_at": "2026-10-13T00:00:00Z"}
+    )
+    assert response.improvements[0].file == "(project)"
+
+
+def test_new_file_paths_are_allowed() -> None:
+    from app.schemas.roast import RoastResult, is_placeholder_file
+
+    data = valid_roast_dict()
+    data["improvements"][0]["file"] = "tests/test_app.py"
+    data["improvements"][0]["line_hint"] = "new file"
+    assert RoastResult.model_validate(data).improvements[0].file == "tests/test_app.py"
+    assert not is_placeholder_file("src/(group)/page.tsx")
