@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { HomePage } from './pages/HomePage';
-import { ProtectedRoute, PublicOnlyRoute } from './components/auth/ProtectedRoute';
+import { AdminRoute, ProtectedRoute, PublicOnlyRoute } from './components/auth/ProtectedRoute';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -11,6 +11,9 @@ import { NewRoastPage } from './pages/NewRoastPage';
 import { SubmissionsPage } from './pages/SubmissionsPage';
 import { SubmissionDetailPage } from './pages/SubmissionDetailPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
+import { AdminSubmissionsPage } from './pages/AdminSubmissionsPage';
 
 export interface AppRoute {
   path: string;
@@ -35,6 +38,10 @@ export const layoutRoutes: AppRoute[] = [
   { path: '/submissions', element: <ProtectedRoute><SubmissionsPage /></ProtectedRoute> },
   { path: '/submissions/:id', element: <ProtectedRoute><SubmissionDetailPage /></ProtectedRoute> },
   { path: '/settings', element: <ProtectedRoute><SettingsPage /></ProtectedRoute> },
+  // Admin panel (is_admin only)
+  { path: '/admin', element: <AdminRoute><AdminDashboardPage /></AdminRoute> },
+  { path: '/admin/users', element: <AdminRoute><AdminUsersPage /></AdminRoute> },
+  { path: '/admin/submissions', element: <AdminRoute><AdminSubmissionsPage /></AdminRoute> },
 ];
 
 /** Routes rendered without the app layout (e.g. full-screen OAuth callback). */

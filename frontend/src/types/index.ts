@@ -128,3 +128,54 @@ export interface Quota {
   limit: number;
   resets_at: string;
 }
+
+// --- Admin -------------------------------------------------------------------
+
+export interface AdminUser {
+  id: number;
+  email: string;
+  full_name: string;
+  is_active: boolean;
+  is_admin: boolean;
+  oauth_provider: string | null;
+  submission_count: number;
+  created_at: string;
+}
+
+export interface AdminUserUpdate {
+  is_active?: boolean;
+  is_admin?: boolean;
+}
+
+export interface AdminSubmission {
+  id: number;
+  user_id: number;
+  user_email: string;
+  repo_url: string;
+  repo_owner: string;
+  repo_name: string;
+  status: SubmissionStatus;
+  error_code: string | null;
+  overall_score: number | null;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface DailyRoastCount {
+  day: string;
+  count: number;
+}
+
+export interface AdminStats {
+  total_users: number;
+  active_users: number;
+  total_submissions: number;
+  submissions_by_status: Record<SubmissionStatus, number>;
+  failure_rate: number;
+  total_roasts: number;
+  roasts_today: number;
+  roasts_per_day: DailyRoastCount[];
+  average_score: number | null;
+  total_input_tokens: number;
+  total_output_tokens: number;
+}

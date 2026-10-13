@@ -87,3 +87,7 @@ app.include_router(auth_router.router, prefix=API_PREFIX)
 from app.routers import submissions as submissions_router  # noqa: E402
 
 app.include_router(submissions_router.router, prefix=API_PREFIX)
+
+from app.routers import admin as admin_router  # noqa: E402
+
+app.include_router(admin_router.router, prefix=API_PREFIX)

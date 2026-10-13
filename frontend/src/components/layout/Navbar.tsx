@@ -43,6 +43,8 @@ const AUTH_NAV_ITEMS: NavItem[] = [
   { label: 'History', to: '/submissions' },
 ];
 
+const ADMIN_NAV_ITEM: NavItem = { label: 'Admin', to: '/admin' };
+
 const MotionIconButton = motion.create(IconButton);
 
 export function Navbar() {
@@ -51,6 +53,7 @@ export function Navbar() {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const drawer = useDisclosure();
+  const navItems = user?.is_admin ? [...AUTH_NAV_ITEMS, ADMIN_NAV_ITEM] : AUTH_NAV_ITEMS;
 
   const handleLogout = async () => {
     drawer.onClose();
@@ -101,7 +104,7 @@ export function Navbar() {
           <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
             {isAuthenticated && (
               <HStack as="nav" aria-label="Main" spacing={6}>
-                {AUTH_NAV_ITEMS.map((item) => (
+                {navItems.map((item) => (
                   <Link
                     key={item.to}
                     as={NavLink}
@@ -196,7 +199,7 @@ export function Navbar() {
           <DrawerBody>
             {isAuthenticated ? (
               <Stack as="nav" aria-label="Mobile" spacing={1}>
-                {[...AUTH_NAV_ITEMS, { label: 'Profile', to: '/profile' }, { label: 'Settings', to: '/settings' }].map(
+                {[...navItems, { label: 'Profile', to: '/profile' }, { label: 'Settings', to: '/settings' }].map(
                   (item) => (
                     <Link
                       key={item.to}
