@@ -2,6 +2,10 @@
 
 > Paste a public GitHub repo, get an honest code review in Tanglish: a score, a roast, and fixes ranked by severity.
 
+**Try it live: [roaster.prasanna.digital](https://roaster.prasanna.digital)** (sign in with Google)
+
+![A roast result: score ring at 7/10 and the headline "Architecture semma weight ah irukku, aana one f-string SyntaxError vandha whole RAG bus puncture machaan!"](docs/roast-result.png)
+
 Assignment Roaster is an AI code reviewer for students. It reads your assignment repo and replies like a friendly senior anna/akka would:
 
 > *"Machaan, oru function la 300 lines ah? Idhu function illa, full novel da! Konjam split pannu."*
@@ -20,6 +24,8 @@ It roasts the **code**, never the person, and every joke comes with a concrete f
 | **Roast** | 150–400 words of Tanglish review in Markdown |
 | **Strengths** | What you did well, so you stay motivated |
 | **Fixes** | 3–15 issues, each tied to a real file path, with a suggestion and severity |
+
+![The roast text: a Tanglish review pointing at specific files such as app/rag/chain.py and .env.example](docs/roast-text.png)
 
 Other features:
 
