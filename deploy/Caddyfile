@@ -1,0 +1,22 @@
+# Caddy obtains and renews the HTTPS certificate for {$DOMAIN} automatically
+# (Let's Encrypt). The domain's DNS A record must point at this server first.
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+
+	@api path /api/* /health /docs /docs/* /openapi.json
+	handle @api {
+		reverse_proxy backend:8000
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
+}
