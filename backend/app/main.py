@@ -10,12 +10,15 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import settings
 from app.exceptions import AppError
+from app.log_redaction import install_access_log_redaction
 from app.rate_limit import limiter
 
 logging.basicConfig(
     level=logging.DEBUG if settings.ENVIRONMENT == "development" else logging.INFO,
     format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
 )
+# The OAuth callback's ?code=&state= would otherwise be written to the access log.
+install_access_log_redaction()
 logger = logging.getLogger(__name__)
 
 API_PREFIX = "/api/v1"
