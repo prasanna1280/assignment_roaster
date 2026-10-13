@@ -93,7 +93,9 @@ def pg_engine() -> Iterator[Engine]:
 @pytest.fixture
 def pg(pg_engine: Engine) -> Iterator[Session]:
     with pg_engine.begin() as conn:
-        conn.execute(text("TRUNCATE users, refresh_tokens, submissions, roasts, roast_attempts CASCADE"))
+        conn.execute(
+            text("TRUNCATE users, refresh_tokens, submissions, roasts, roast_attempts CASCADE")
+        )
     session = sessionmaker(bind=pg_engine, autoflush=False)()
     try:
         yield session
