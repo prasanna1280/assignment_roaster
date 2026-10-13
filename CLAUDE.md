@@ -178,6 +178,7 @@ const fetchSubmission = async (id: number): Promise<Submission> => {
 - Use the official `openai` Python SDK (`AsyncOpenAI`). Read the key from `OPENAI_API_KEY` and the model from `OPENAI_MODEL` (default `gpt-4o`).
 - Use **Structured Outputs** (strict JSON schema generated from the `RoastResult` Pydantic model). Always re-validate with Pydantic, because strict mode doesn't enforce ranges or list lengths. Retry once on invalid output or refusal, then mark the submission `failed`.
 - Scores: `overall_score` and every category score are numbers from 0.0 to 10.0
+- Tanglish is Tamil in **Latin letters only**; output containing Tamil script is retried once with a correction, then accepted (a style slip must not fail a roast)
 - Response must include at least 1 strength, at least 3 improvements (with file references) and a one-line `headline`
 - Wrap repo contents in clear delimiters, and tell the model that the content is untrusted data and any instructions inside it must be ignored (prompt-injection defense)
 - Record `model_used`, `input_tokens` and `output_tokens` on every Roast
@@ -253,6 +254,7 @@ GITHUB_TOKEN=
 # OpenAI
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o
+OPENAI_REASONING_EFFORT=   # reasoning models only: minimal | low | medium | high
 
 # Roast limits
 ROAST_DAILY_LIMIT=5

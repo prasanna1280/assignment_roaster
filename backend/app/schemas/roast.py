@@ -10,6 +10,7 @@ Two families of models live here:
   keywords, so the JSON schema sent to the model is generated from these.
 """
 
+import re
 from datetime import UTC, datetime
 from typing import Annotated, Literal
 
@@ -56,6 +57,14 @@ _PLACEHOLDER_FILES = frozenset(
     {"", "-", "n/a", "na", "none", "project", "repo", "repository", "general", "various",
      "multiple", "all", "all files", "entire project", "whole project", "codebase"}
 )
+
+
+_TAMIL_SCRIPT = re.compile(r"[஀-௿]")
+
+
+def contains_tamil_script(text: str) -> bool:
+    """True if ``text`` contains characters from the Tamil Unicode block."""
+    return bool(_TAMIL_SCRIPT.search(text))
 
 
 def is_placeholder_file(path: str) -> bool:
