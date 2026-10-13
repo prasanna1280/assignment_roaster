@@ -100,7 +100,10 @@ Log out and back in, and an **Admin** link appears in the navbar.
 
 ## Deploy to a VPS (HTTPS)
 
-`docker-compose.prod.yml` runs the whole app behind [Caddy](https://caddyserver.com), which gets and renews a Let's Encrypt certificate automatically. Only ports 80 and 443 are published; the database and backend stay on Docker's internal network.
+`docker-compose.prod.yml` publishes no app ports: the database, backend and frontend stay on Docker's internal network, and a reverse proxy provides HTTPS with Let's Encrypt. It works with either:
+
+- **An existing Traefik** (Docker provider, `websecure` entrypoint, `letsencrypt` cert resolver). The services carry Traefik labels that route `DOMAIN` to the app, with `/api`, `/health` and `/docs` going to the backend.
+- **The bundled [Caddy](https://caddyserver.com)** on a fresh server with nothing on ports 80/443. Add `--profile caddy`.
 
 1. Point your domain's DNS **A record** at the server's IP.
 2. On the server (Ubuntu/Debian with Docker installed):
@@ -110,7 +113,11 @@ Log out and back in, and an **Admin** link appears in the navbar.
    cd assignment_roaster
    cp deploy/production.env.example .env.production
    # Fill in DOMAIN, POSTGRES_PASSWORD, SECRET_KEY, OPENAI_API_KEY, Google OAuth
+
+   # Server already running Traefik:
    docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+   # Fresh server (bundled Caddy):
+   docker compose -f docker-compose.prod.yml --env-file .env.production --profile caddy up -d --build
    ```
 
 3. In Google Cloud, add `https://<your-domain>` as a JavaScript origin and `https://<your-domain>/api/v1/auth/google/callback` as a redirect URI.

@@ -1,11 +1,14 @@
-# Production stack for a single VPS.
-# Only Caddy is published (80/443, automatic HTTPS); db, backend and frontend stay
-# on the internal Docker network. Docker-published ports bypass ufw, so nothing
-# else may be published here.
+# Production stack for a single VPS. HTTPS comes from a reverse proxy:
 #
-# Usage (on the server, from the repo root):
-#   cp deploy/production.env.example .env.production   # then fill it in
-#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#  * Server already running Traefik (Docker provider, "websecure" entrypoint and a
+#    "letsencrypt" cert resolver): the labels below route ${DOMAIN} to this app.
+#      docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build
+#
+#  * Fresh server with nothing on 80/443: also start the bundled Caddy.
+#      docker compose -f docker-compose.prod.yml --env-file .env.production --profile caddy up -d --build
+#
+# No database/backend/frontend ports are published (Docker-published ports bypass ufw).
+# Setup: cp deploy/production.env.example .env.production, then fill it in.
 services:
   db:
     image: postgres:16-alpine
@@ -33,12 +36,21 @@ services:
       FRONTEND_URL: https://${DOMAIN:?set DOMAIN in .env.production}
       BACKEND_URL: https://${DOMAIN}
       CORS_ORIGINS: '["https://${DOMAIN}"]'
-    # Trust X-Forwarded-* from Caddy so client IPs (rate limits) and https are correct.
-    # Safe because the backend is reachable only from the internal network.
+    # Trust X-Forwarded-* from the proxy so client IPs (rate limits) and https are
+    # correct. Safe because the backend is reachable only from the proxy.
     command: ["--proxy-headers", "--forwarded-allow-ips=*"]
     depends_on:
       db:
         condition: service_healthy
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.roaster-api.rule: >-
+        Host(`${DOMAIN}`) && (PathPrefix(`/api/`) || Path(`/health`) || PathPrefix(`/docs`) || Path(`/openapi.json`))
+      traefik.http.routers.roaster-api.priority: "100"
+      traefik.http.routers.roaster-api.entrypoints: websecure
+      traefik.http.routers.roaster-api.tls.certresolver: letsencrypt
+      traefik.http.routers.roaster-api.middlewares: roaster-headers
+      traefik.http.services.roaster-api.loadbalancer.server.port: "8000"
 
   frontend:
     build:
@@ -49,9 +61,23 @@ services:
     restart: unless-stopped
     depends_on:
       - backend
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.roaster-web.rule: Host(`${DOMAIN}`)
+      traefik.http.routers.roaster-web.priority: "1"
+      traefik.http.routers.roaster-web.entrypoints: websecure
+      traefik.http.routers.roaster-web.tls.certresolver: letsencrypt
+      traefik.http.routers.roaster-web.middlewares: roaster-headers
+      traefik.http.services.roaster-web.loadbalancer.server.port: "80"
+      # Same security headers as deploy/Caddyfile.
+      traefik.http.middlewares.roaster-headers.headers.stsSeconds: "31536000"
+      traefik.http.middlewares.roaster-headers.headers.contentTypeNosniff: "true"
+      traefik.http.middlewares.roaster-headers.headers.frameDeny: "true"
+      traefik.http.middlewares.roaster-headers.headers.referrerPolicy: strict-origin-when-cross-origin
 
   caddy:
     image: caddy:2-alpine
+    profiles: ["caddy"]
     restart: unless-stopped
     environment:
       DOMAIN: ${DOMAIN}
