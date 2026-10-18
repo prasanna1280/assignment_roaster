@@ -8,6 +8,7 @@ import openai
 import pytest
 
 from app.config import settings
+from app.models.submission import RoastLanguage, RoastLevel
 from app.services import roast_service
 from app.services.repo_filter_service import RepoFile, RepoSnapshot
 from tests.roaster_helpers import FakeOpenAIClient, make_completion, valid_roast_dict
@@ -298,3 +299,33 @@ def test_tanglish_in_latin_letters_is_accepted() -> None:
     assert RoastResult.model_validate(data).headline.startswith("Machaan")
     assert not contains_tamil_script("Vanakkam machaan! naan, cafe, emoji 🔥")
     assert contains_tamil_script(TAMIL_WORD)
+
+
+async def test_mode_is_sent_in_system_prompt(snapshot: RepoSnapshot) -> None:
+    client = FakeOpenAIClient([make_completion(valid_roast_dict())])
+    await roast_service.generate_roast(
+        snapshot, None, None, client, level=RoastLevel.spicy, language=RoastLanguage.english
+    )
+    system = client.completions.calls[0]["messages"][0]["content"]
+    assert "Roast level: SPICY" in system
+    assert "**English** only" in system
+
+
+async def test_tamil_language_accepts_tamil_script_without_retry(snapshot: RepoSnapshot) -> None:
+    tamil = valid_roast_dict(headline=f"{TAMIL_WORD} main.py")
+    client = FakeOpenAIClient([make_completion(tamil)])
+    generation = await roast_service.generate_roast(
+        snapshot, None, None, client, language=RoastLanguage.tamil
+    )
+    assert len(client.completions.calls) == 1
+    assert TAMIL_WORD in generation.result.headline
+
+
+async def test_english_language_retries_tamil_script(snapshot: RepoSnapshot) -> None:
+    bad = valid_roast_dict(headline=f"Nice {TAMIL_WORD}")
+    client = FakeOpenAIClient([make_completion(bad), make_completion(valid_roast_dict())])
+    await roast_service.generate_roast(
+        snapshot, None, None, client, language=RoastLanguage.english
+    )
+    correction = client.completions.calls[1]["messages"][-1]["content"]
+    assert "plain English only" in correction

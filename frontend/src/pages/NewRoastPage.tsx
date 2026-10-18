@@ -23,9 +23,11 @@ import { RepoUrlInput } from '../components/roast/RepoUrlInput';
 import { QuotaBadge } from '../components/roast/QuotaBadge';
 import { isQuotaExhausted } from '../components/roast/roastUtils';
 import { useCreateSubmission, useQuota } from '../hooks/useSubmissions';
+import { RoastModePicker } from '../components/roast/RoastModePicker';
 import { parseRepoUrl, validateRepoUrl } from '../lib/repoUrl';
+import { loadRoastModePreference, saveRoastModePreference } from '../lib/roastModes';
 import { getErrorCode, getErrorMessage } from '../services/api';
-import type { SubmissionCreate } from '../types';
+import type { RoastLanguage, RoastLevel, SubmissionCreate } from '../types';
 
 const TITLE_MAX = 200;
 const DESCRIPTION_MAX = 5000;
@@ -44,6 +46,8 @@ export function NewRoastPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [level, setLevel] = useState<RoastLevel>(() => loadRoastModePreference().level);
+  const [language, setLanguage] = useState<RoastLanguage>(() => loadRoastModePreference().language);
 
   const clientRepoError = validateRepoUrl(repoUrl);
   const repoError = serverRepoError ?? (repoTouched ? clientRepoError : null);
@@ -57,7 +61,8 @@ export function NewRoastPage() {
     setFormError(null);
     if (clientRepoError || quotaExhausted) return;
 
-    const payload: SubmissionCreate = { repo_url: repoUrl.trim() };
+    const payload: SubmissionCreate = { repo_url: repoUrl.trim(), roast_level: level, roast_language: language };
+    saveRoastModePreference({ level, language });
     const trimmedBranch = branch.trim();
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
@@ -117,6 +122,14 @@ export function NewRoastPage() {
               }}
               onBlur={() => setRepoTouched(true)}
               error={repoError}
+              isDisabled={isSubmitting}
+            />
+
+            <RoastModePicker
+              level={level}
+              language={language}
+              onLevelChange={setLevel}
+              onLanguageChange={setLanguage}
               isDisabled={isSubmitting}
             />
 

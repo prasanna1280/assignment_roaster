@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Paginated, Quota, Submission, SubmissionCreate } from '../types';
+import type { Paginated, Quota, ReroastOptions, Submission, SubmissionCreate } from '../types';
 
 /** Typed client for the /submissions endpoints. */
 export const submissionService = {
@@ -25,8 +25,8 @@ export const submissionService = {
     return data;
   },
 
-  async reroast(id: number): Promise<Submission> {
-    const { data } = await api.post<Submission>(`/submissions/${id}/reroast`);
+  async reroast(id: number, options: ReroastOptions = {}): Promise<Submission> {
+    const { data } = await api.post<Submission>(`/submissions/${id}/reroast`, options);
     return data;
   },
 

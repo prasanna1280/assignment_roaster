@@ -23,6 +23,7 @@ const mocked = vi.mocked(submissionService);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   mocked.getQuota.mockResolvedValue({ used: 1, limit: 3, resets_at: '2026-10-11T00:00:00Z' });
 });
 
@@ -62,9 +63,34 @@ describe('NewRoastPage', () => {
       expect(mocked.create).toHaveBeenCalledWith({
         repo_url: 'https://github.com/kavya/todo-api',
         assignment_title: 'Week 3',
+        roast_level: 'medium',
+        roast_language: 'tanglish',
       }),
     );
     expect(await screen.findByText('Detail page reached')).toBeInTheDocument();
+  });
+
+  it('sends the chosen roast level and language and remembers them', async () => {
+    const user = userEvent.setup();
+    mocked.create.mockResolvedValue(makeSubmission({ id: 78, status: 'queued', latest_roast: null }));
+    renderNewRoast();
+
+    await user.type(screen.getByLabelText(/github repo url/i), 'https://github.com/kavya/todo-api');
+    await user.click(screen.getByRole('radio', { name: /spicy/i }));
+    await user.click(screen.getByRole('radio', { name: /^english/i }));
+    await user.click(screen.getByRole('button', { name: /roast it/i }));
+
+    await waitFor(() =>
+      expect(mocked.create).toHaveBeenCalledWith({
+        repo_url: 'https://github.com/kavya/todo-api',
+        roast_level: 'spicy',
+        roast_language: 'english',
+      }),
+    );
+    expect(JSON.parse(window.localStorage.getItem('ar_roast_mode') ?? '{}')).toEqual({
+      level: 'spicy',
+      language: 'english',
+    });
   });
 
   it('disables submit when the daily quota is used up', async () => {
@@ -99,6 +125,27 @@ describe('SubmissionDetailPage', () => {
     expect(repoLink).toHaveAttribute('rel', 'noopener noreferrer');
     expect(screen.getByRole('button', { name: /re-roast/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    expect(screen.getByTestId('roast-mode')).toHaveTextContent('Medium · Tanglish');
+  });
+
+  it('re-roasts with a different level and language from the dialog', async () => {
+    const user = userEvent.setup();
+    mocked.get.mockResolvedValue(makeSubmission());
+    mocked.reroast.mockResolvedValue(
+      makeSubmission({ status: 'queued', roast_level: 'lite', roast_language: 'tamil' }),
+    );
+    renderDetail();
+
+    await user.click(await screen.findByRole('button', { name: /re-roast/i }));
+    const dialog = await screen.findByRole('dialog', { name: /re-roast this repo/i });
+    expect(dialog).toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: /lite/i }));
+    await user.click(screen.getByRole('radio', { name: /^tamil/i }));
+    await user.click(screen.getByRole('button', { name: /start re-roast/i }));
+
+    await waitFor(() =>
+      expect(mocked.reroast).toHaveBeenCalledWith(42, { roast_level: 'lite', roast_language: 'tamil' }),
+    );
   });
 
   it('renders the failed state with error message and tailored tip', async () => {

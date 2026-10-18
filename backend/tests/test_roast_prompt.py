@@ -1,7 +1,15 @@
 """Tests for the system prompt rules and the untrusted-content prompt builder."""
 
+import pytest
+
+from app.models.submission import RoastLanguage, RoastLevel
 from app.services import repo_filter_service as rfs
-from app.services.prompts.roast_prompt import SYSTEM_PROMPT, build_user_prompt, escape_untrusted
+from app.services.prompts.roast_prompt import (
+    SYSTEM_PROMPT,
+    build_system_prompt,
+    build_user_prompt,
+    escape_untrusted,
+)
 from app.services.repo_filter_service import RepoFile, RepoSnapshot
 from tests.roaster_helpers import make_tarball
 
@@ -113,3 +121,45 @@ def test_committed_secrets_flag_and_no_secret_leak() -> None:
     assert secret not in prompt
     assert "abc12345" not in prompt
     assert rfs.MASK in prompt
+
+
+# --- Roast level and language ------------------------------------------------------
+@pytest.mark.parametrize("level", list(RoastLevel))
+@pytest.mark.parametrize("language", list(RoastLanguage))
+def test_every_mode_keeps_safety_and_security_rules(
+    level: RoastLevel, language: RoastLanguage
+) -> None:
+    lowered = build_system_prompt(level, language).lower()
+    for phrase in (
+        "roast the **code**, never the **person**",
+        "no profanity",
+        "concrete fix",
+        "caste, religion, gender",
+        "0-3 poor, 4-6 okay, 7-8 good, 9-10 excellent",
+        "changes only the tone",
+        "<untrusted_repo_content>",
+        "prompt injection",
+        "never try to guess",
+        'never use placeholders such as "(project)"',
+        f"roast level: {level.value}",
+    ):
+        assert phrase in lowered, (level, language, phrase)
+
+
+def test_language_sections_differ() -> None:
+    english = build_system_prompt(RoastLevel.medium, RoastLanguage.english)
+    tamil = build_system_prompt(RoastLevel.medium, RoastLanguage.tamil)
+    tanglish = build_system_prompt(RoastLevel.medium, RoastLanguage.tanglish)
+
+    assert "**English** only" in english
+    assert "machaan" not in english.lower()
+    assert "Tamil script" in tamil and "\u0ba4\u0bae\u0bbf\u0bb4\u0bcd" in tamil
+    assert "never Tamil script" in tanglish
+    assert tanglish == SYSTEM_PROMPT
+
+
+def test_level_sections_differ() -> None:
+    lite = build_system_prompt(RoastLevel.lite, RoastLanguage.english)
+    spicy = build_system_prompt(RoastLevel.spicy, RoastLanguage.english)
+    assert "gentle mentor" in lite and "no sarcasm" in lite
+    assert "no mercy for the code" in spicy and "Spicy never means mean" in spicy

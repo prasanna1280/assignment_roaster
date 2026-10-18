@@ -38,9 +38,11 @@ import { StatusStepper } from '../components/roast/StatusStepper';
 import { StatusBadge } from '../components/roast/StatusBadge';
 import { SubmissionErrorState } from '../components/roast/SubmissionErrorState';
 import { formatRelativeDate, scoreVerdict } from '../components/roast/roastUtils';
+import { ReroastDialog } from '../components/roast/ReroastDialog';
 import { useDeleteSubmission, useReroast, useSubmission } from '../hooks/useSubmissions';
+import { roastLanguageLabel, roastLevelLabel } from '../lib/roastModes';
 import { getErrorMessage } from '../services/api';
-import type { Roast, Submission } from '../types';
+import type { ReroastOptions, Roast, Submission } from '../types';
 
 function NotFoundState() {
   return (
@@ -72,6 +74,9 @@ function RepoHeader({ submission }: { submission: Submission }) {
     <Stack spacing={2}>
       <HStack spacing={3} flexWrap="wrap">
         <StatusBadge status={submission.status} />
+        <Badge variant="outline" borderRadius="full" px={2} data-testid="roast-mode">
+          {roastLevelLabel(submission.roast_level)} · {roastLanguageLabel(submission.roast_language)}
+        </Badge>
         {submission.primary_language && (
           <Badge variant="subtle" borderRadius="full" px={2}>
             {submission.primary_language}
@@ -171,15 +176,17 @@ export function SubmissionDetailPage() {
   const navigate = useNavigate();
   const toast = useToast();
   const deleteDialog = useDisclosure();
+  const reroastDialog = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
 
   const query = useSubmission(validId ? id : undefined);
   const reroast = useReroast();
   const deleteSubmission = useDeleteSubmission();
 
-  const handleReroast = async () => {
+  const handleReroast = async (options?: ReroastOptions) => {
     try {
-      await reroast.mutateAsync(id);
+      await reroast.mutateAsync({ id, options });
+      reroastDialog.onClose();
       toast({ status: 'info', title: 'Re-roast started 🔥', description: 'Fresh masala coming up!', isClosable: true });
     } catch (err) {
       toast({ status: 'error', title: 'Re-roast aagala', description: getErrorMessage(err), isClosable: true });
@@ -256,7 +263,7 @@ export function SubmissionDetailPage() {
               <Button
                 leftIcon={<FiRefreshCw aria-hidden="true" />}
                 variant="outline"
-                onClick={() => void handleReroast()}
+                onClick={reroastDialog.onOpen}
                 isLoading={reroast.isPending}
                 loadingText="Re-roasting"
               >
@@ -302,6 +309,16 @@ export function SubmissionDetailPage() {
             />
           ))}
       </Stack>
+
+      <ReroastDialog
+        key={`${submission.roast_level}-${submission.roast_language}`}
+        isOpen={reroastDialog.isOpen}
+        onClose={reroastDialog.onClose}
+        initialLevel={submission.roast_level}
+        initialLanguage={submission.roast_language}
+        onConfirm={(options) => void handleReroast(options)}
+        isLoading={reroast.isPending}
+      />
 
       <AlertDialog isOpen={deleteDialog.isOpen} leastDestructiveRef={cancelRef} onClose={deleteDialog.onClose} isCentered>
         <AlertDialogOverlay>

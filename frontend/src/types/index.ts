@@ -4,6 +4,12 @@ export type SubmissionStatus = 'queued' | 'fetching' | 'analyzing' | 'completed'
 
 export type Severity = 'low' | 'medium' | 'high';
 
+/** How spicy the roast's tone is. Never changes the scores. */
+export type RoastLevel = 'lite' | 'medium' | 'spicy';
+
+/** Language the roast is written in. */
+export type RoastLanguage = 'english' | 'tamil' | 'tanglish';
+
 export interface CategoryScores {
   code_quality: number;
   structure: number;
@@ -29,6 +35,8 @@ export interface Roast {
   roast_text: string;
   strengths: string[];
   improvements: Improvement[];
+  roast_level: RoastLevel;
+  roast_language: RoastLanguage;
   model_used: string;
   created_at: string;
 }
@@ -61,6 +69,8 @@ export interface Submission {
   assignment_title: string | null;
   assignment_description: string | null;
   primary_language: string | null;
+  roast_level: RoastLevel;
+  roast_language: RoastLanguage;
   files_analyzed: number;
   status: SubmissionStatus;
   error_code: string | null;
@@ -91,6 +101,13 @@ export interface SubmissionCreate {
   branch?: string;
   assignment_title?: string;
   assignment_description?: string;
+  roast_level?: RoastLevel;
+  roast_language?: RoastLanguage;
+}
+
+export interface ReroastOptions {
+  roast_level?: RoastLevel;
+  roast_language?: RoastLanguage;
 }
 
 export interface User {

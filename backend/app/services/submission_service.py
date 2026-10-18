@@ -23,7 +23,7 @@ from app.models.roast import Roast
 from app.models.roast_attempt import RoastAttempt
 from app.models.submission import Submission, SubmissionStatus
 from app.models.user import User
-from app.schemas.submission import QuotaResponse, SubmissionCreate
+from app.schemas.submission import QuotaResponse, ReroastRequest, SubmissionCreate
 from app.services import github_service, repo_filter_service, roast_service
 from app.services.github_service import GitHubError
 from app.services.repo_filter_service import RepoFilterError
@@ -187,6 +187,8 @@ def create_submission(db: Session, user: User, data: SubmissionCreate) -> Submis
         branch=parsed.branch,
         assignment_title=data.assignment_title,
         assignment_description=data.assignment_description,
+        roast_level=data.roast_level,
+        roast_language=data.roast_language,
         status=SubmissionStatus.queued,
     )
     db.add(submission)
@@ -236,8 +238,13 @@ def delete_submission(db: Session, user_id: int, submission_id: int) -> None:
     logger.info("Submission %s deleted by user %s", submission_id, user_id)
 
 
-def start_reroast(db: Session, user: User, submission_id: int) -> Submission:
+def start_reroast(
+    db: Session, user: User, submission_id: int, options: ReroastRequest | None = None
+) -> Submission:
     """Reset a finished submission to ``queued`` for another roast attempt.
+
+    ``options`` may switch the roast level and/or language; omitted fields keep the
+    submission's previous choice.
 
     Raises:
         NotFoundError: not found / not owned (404).
@@ -255,6 +262,11 @@ def start_reroast(db: Session, user: User, submission_id: int) -> Submission:
     submission.error_code = None
     submission.error_message = None
     submission.completed_at = None
+    if options is not None:
+        if options.roast_level is not None:
+            submission.roast_level = options.roast_level
+        if options.roast_language is not None:
+            submission.roast_language = options.roast_language
     _record_attempt(db, user.id, submission.id)
     db.commit()
     db.refresh(submission)
@@ -311,7 +323,11 @@ async def _run_pipeline(db: Session, submission: Submission) -> None:
     _set_status(db, submission, SubmissionStatus.analyzing)
 
     generation = await roast_service.generate_roast(
-        snapshot, submission.assignment_title, submission.assignment_description
+        snapshot,
+        submission.assignment_title,
+        submission.assignment_description,
+        level=submission.roast_level,
+        language=submission.roast_language,
     )
     result = generation.result
     db.add(
@@ -325,6 +341,8 @@ async def _run_pipeline(db: Session, submission: Submission) -> None:
             roast_text=result.roast_text,
             strengths=list(result.strengths),
             improvements=[item.model_dump() for item in result.improvements],
+            roast_level=submission.roast_level,
+            roast_language=submission.roast_language,
             model_used=generation.model[:100],
             input_tokens=generation.input_tokens,
             output_tokens=generation.output_tokens,
