@@ -1,6 +1,4 @@
-import { Heading, HStack, Icon } from '@chakra-ui/react';
-import { FaFire } from 'react-icons/fa';
-import { brandGradient } from '../../theme';
+import { Box, Heading, Text } from '@chakra-ui/react';
 
 export interface RoastHeadlineProps {
   headline: string;
@@ -8,12 +6,14 @@ export interface RoastHeadlineProps {
 
 export function RoastHeadline({ headline }: RoastHeadlineProps) {
   return (
-    <HStack align="flex-start" spacing={3}>
-      <Icon as={FaFire} boxSize={7} color="brand.400" mt={1} aria-hidden="true" />
-      <Heading as="h2" size="lg" lineHeight="1.25" bgGradient={brandGradient} bgClip="text">
+    <Box borderLeftWidth="3px" borderColor="accent.solid" pl={5}>
+      <Text fontSize="xs" fontWeight="semibold" textTransform="uppercase" letterSpacing="wider" color="text.muted" mb={2}>
+        Verdict
+      </Text>
+      <Heading as="h2" size="lg" lineHeight="1.3">
         {headline}
       </Heading>
-    </HStack>
+    </Box>
   );
 }
 

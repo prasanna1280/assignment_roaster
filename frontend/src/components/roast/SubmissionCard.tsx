@@ -1,8 +1,8 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Flex, HStack, Icon, LinkBox, LinkOverlay, Stack, Text } from '@chakra-ui/react';
-import { FiGitBranch, FiGithub } from 'react-icons/fi';
+import { FiAlertCircle, FiClock, FiGitBranch, FiGithub } from 'react-icons/fi';
 import type { Submission } from '../../types';
-import { GlassCard } from '../ui/GlassCard';
+import { SectionCard } from '../ui/SectionCard';
 import { ScoreRing } from './ScoreRing';
 import { StatusBadge } from './StatusBadge';
 import { formatRelativeDate } from './roastUtils';
@@ -18,7 +18,7 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
 
   return (
     <LinkBox as="article" data-testid="submission-card">
-      <GlassCard p={5}>
+      <SectionCard p={5} interactive>
         <Flex gap={4} align="center">
           <Stack spacing={1.5} flex="1" minW={0}>
             <HStack spacing={2} minW={0}>
@@ -50,12 +50,12 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
           {showScore && roast ? (
             <ScoreRing score={roast.overall_score} size={64} thickness={6} label={`Score for ${repoName}`} />
           ) : (
-            <Box w="64px" textAlign="center" color="text.muted" fontSize="2xl" aria-hidden="true">
-              {submission.status === 'failed' ? '💥' : '🔥'}
+            <Box w="64px" textAlign="center" color={submission.status === 'failed' ? 'severity.high' : 'text.muted'} aria-hidden="true">
+              <Icon as={submission.status === 'failed' ? FiAlertCircle : FiClock} boxSize={6} />
             </Box>
           )}
         </Flex>
-      </GlassCard>
+      </SectionCard>
     </LinkBox>
   );
 }

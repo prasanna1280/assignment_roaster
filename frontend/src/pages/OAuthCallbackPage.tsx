@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Center, Heading, Spinner, Stack, Text } from '@chakra-ui/react';
-import { GlassCard } from '../components/ui/GlassCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { SectionCard } from '../components/ui/SectionCard';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { useAuth } from '../hooks/useAuth';
 import { getAuthErrorMessage } from '../services/authService';
 import { parseOAuthHash } from '../components/auth/redirect';
@@ -23,7 +23,7 @@ export function OAuthCallbackPage() {
     window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
 
     if (!tokens) {
-      setError('Google login-la tokens kidaikala. Once more try pannunga.');
+      setError('Google sign-in did not return a session. Please try again.');
       return;
     }
     completeOAuth(tokens.accessToken, tokens.refreshToken)
@@ -34,19 +34,19 @@ export function OAuthCallbackPage() {
   return (
     <Center minH="100vh" bg="bg.canvas" px={4}>
       {error ? (
-        <GlassCard disableHover maxW="md" w="full" textAlign="center">
+        <SectionCard maxW="md" w="full" textAlign="center">
           <Stack spacing={4} align="center" role="alert">
             <Heading as="h1" size="lg">
-              Aiyo, login aagala 😕
+              Sign-in failed
             </Heading>
             <Text color="text.muted">{error}</Text>
-            <GradientButton to="/login">Back to login</GradientButton>
+            <PrimaryButton to="/login">Back to login</PrimaryButton>
           </Stack>
-        </GlassCard>
+        </SectionCard>
       ) : (
         <Stack spacing={4} align="center" role="status" aria-live="polite">
           <Spinner size="xl" thickness="4px" color="accent.fg" />
-          <Text color="text.muted">Google-la irundhu login panrom... konjam wait pannunga</Text>
+          <Text color="text.muted">Signing you in with Google…</Text>
         </Stack>
       )}
     </Center>

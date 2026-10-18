@@ -2,6 +2,7 @@ import { Link as RouterLink, NavLink, useNavigate } from 'react-router-dom';
 import {
   Avatar,
   Box,
+  Center,
   Button,
   Container,
   Divider,
@@ -28,9 +29,8 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 import { FiLogOut, FiMenu, FiMoon, FiSettings, FiSun, FiUser } from 'react-icons/fi';
-import { motion } from 'framer-motion';
 import { useAuth } from '../../hooks/useAuth';
-import { GradientButton } from '../ui/GradientButton';
+import { PrimaryButton } from '../ui/PrimaryButton';
 
 interface NavItem {
   label: string;
@@ -45,11 +45,23 @@ const AUTH_NAV_ITEMS: NavItem[] = [
 
 const ADMIN_NAV_ITEM: NavItem = { label: 'Admin', to: '/admin' };
 
-const MotionIconButton = motion.create(IconButton);
+/** Wordmark: a small navy monogram plus the product name. */
+function Wordmark() {
+  return (
+    <HStack spacing={2.5}>
+      <Center boxSize={8} borderRadius="md" bg="accent.solid" color="bg.surface" fontWeight="bold" fontSize="sm" aria-hidden="true">
+        AR
+      </Center>
+      <Text fontWeight="semibold" fontSize={{ base: 'md', md: 'lg' }} letterSpacing="-0.01em" whiteSpace="nowrap" color="text.primary">
+        Assignment Roaster
+      </Text>
+    </HStack>
+  );
+}
 
 export function Navbar() {
   const { colorMode, toggleColorMode } = useColorMode();
-  const activeColor = useColorModeValue('brand.600', 'brand.300');
+  const activeColor = useColorModeValue('brand.700', 'brand.200');
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const navigate = useNavigate();
   const drawer = useDisclosure();
@@ -62,15 +74,13 @@ export function Navbar() {
   };
 
   const colorModeToggle = (
-    <MotionIconButton
+    <IconButton
       aria-label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
       icon={colorMode === 'dark' ? <FiSun /> : <FiMoon />}
       onClick={toggleColorMode}
       variant="ghost"
-      colorScheme="brand"
-      borderRadius="full"
-      whileHover={{ scale: 1.1, rotate: 15 }}
-      whileTap={{ scale: 0.9 }}
+      colorScheme="gray"
+      size="sm"
     />
   );
 
@@ -80,24 +90,14 @@ export function Navbar() {
       position="sticky"
       top={0}
       zIndex="sticky"
-      bg="bg.glass"
-      backdropFilter="blur(14px)"
+      bg="bg.surface"
       borderBottomWidth="1px"
       borderColor="border.subtle"
     >
       <Container maxW="container.xl" px={{ base: 4, md: 6 }}>
         <Flex h="64px" align="center" justify="space-between" gap={4}>
-          <Link as={RouterLink} to="/" _hover={{ opacity: 0.85 }}>
-            <Text
-              fontFamily="heading"
-              fontWeight="bold"
-              fontSize={{ base: 'md', md: 'xl' }}
-              bgGradient="linear(to-r, brand.300, ember.400)"
-              bgClip="text"
-              whiteSpace="nowrap"
-            >
-              🔥 Assignment Roaster
-            </Text>
+          <Link as={RouterLink} to="/" _hover={{ textDecoration: 'none', opacity: 0.85 }} aria-label="Assignment Roaster home">
+            <Wordmark />
           </Link>
 
           {/* Desktop */}
@@ -110,8 +110,9 @@ export function Navbar() {
                     as={NavLink}
                     to={item.to}
                     fontWeight="medium"
+                    fontSize="sm"
                     color="text.muted"
-                    _hover={{ color: activeColor }}
+                    _hover={{ color: activeColor, textDecoration: 'none' }}
                     _activeLink={{ color: activeColor }}
                   >
                     {item.label}
@@ -150,12 +151,12 @@ export function Navbar() {
             ) : (
               !isLoading && (
                 <HStack spacing={3}>
-                  <Button as={RouterLink} to="/login" variant="ghost" borderRadius="full">
-                    Login
+                  <Button as={RouterLink} to="/login" variant="ghost" colorScheme="gray" size="sm">
+                    Log in
                   </Button>
-                  <GradientButton to="/register" py={4} px={5}>
+                  <PrimaryButton to="/register" size="sm">
                     Sign up
-                  </GradientButton>
+                  </PrimaryButton>
                 </HStack>
               )
             )}
@@ -168,7 +169,8 @@ export function Navbar() {
               aria-label="Open menu"
               icon={<FiMenu />}
               variant="ghost"
-              borderRadius="full"
+              colorScheme="gray"
+              size="sm"
               onClick={drawer.onOpen}
             />
           </HStack>
@@ -222,12 +224,12 @@ export function Navbar() {
               </Stack>
             ) : (
               <Stack spacing={3}>
-                <Button as={RouterLink} to="/login" variant="outline" borderRadius="full" onClick={drawer.onClose}>
-                  Login
+                <Button as={RouterLink} to="/login" variant="outline" onClick={drawer.onClose}>
+                  Log in
                 </Button>
-                <GradientButton to="/register" w="full" onClick={drawer.onClose}>
+                <PrimaryButton to="/register" w="full" onClick={drawer.onClose}>
                   Sign up
-                </GradientButton>
+                </PrimaryButton>
               </Stack>
             )}
           </DrawerBody>

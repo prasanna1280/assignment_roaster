@@ -96,7 +96,7 @@ describe('NewRoastPage', () => {
   it('disables submit when the daily quota is used up', async () => {
     mocked.getQuota.mockResolvedValue({ used: 3, limit: 3, resets_at: '2026-10-11T00:00:00Z' });
     renderNewRoast();
-    expect(await screen.findByText(/roast quota mudinjiduchu/i)).toBeInTheDocument();
+    expect(await screen.findByText(/used all of today's roasts/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /roast it/i })).toBeDisabled();
   });
 });

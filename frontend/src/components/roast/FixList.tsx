@@ -17,7 +17,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
       borderColor={color}
       borderWidth="1px"
       boxShadow="none"
-      borderRadius="full"
+      borderRadius="md"
       px={2}
       textTransform="uppercase"
       fontSize="0.7em"
@@ -30,7 +30,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
 /** Improvements grouped by severity (most urgent first). */
 export function FixList({ improvements }: FixListProps) {
   if (improvements.length === 0) {
-    return <Text color="text.muted">Fix pannradhuku onnum illa. Rare achievement, machaan! 🎉</Text>;
+    return <Text color="text.muted">No fixes needed. That is a rare result.</Text>;
   }
   const sorted = sortBySeverity(improvements);
   return (
@@ -58,12 +58,12 @@ export function FixList({ improvements }: FixListProps) {
                   data-testid="fix-item"
                   data-severity={imp.severity}
                   p={4}
-                  borderRadius="xl"
+                  borderRadius="md"
                   borderWidth="1px"
                   borderColor="border.subtle"
-                  borderLeftWidth="4px"
+                  borderLeftWidth="3px"
                   borderLeftColor={`severity.${imp.severity}`}
-                  bg="bg.glass"
+                  bg="bg.surface"
                 >
                   <HStack spacing={2} mb={2} flexWrap="wrap">
                     <SeverityBadge severity={imp.severity} />

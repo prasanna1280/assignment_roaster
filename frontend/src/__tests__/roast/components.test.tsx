@@ -46,7 +46,7 @@ describe('FixList', () => {
 
   it('shows an empty message when there is nothing to fix', () => {
     renderWithProviders(<FixList improvements={[]} />, { withAuth: false });
-    expect(screen.getByText(/onnum illa/i)).toBeInTheDocument();
+    expect(screen.getByText(/no fixes needed/i)).toBeInTheDocument();
   });
 });
 

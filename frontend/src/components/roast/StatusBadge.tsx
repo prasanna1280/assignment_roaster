@@ -8,7 +8,7 @@ export interface StatusBadgeProps {
 
 export function StatusBadge({ status }: StatusBadgeProps) {
   return (
-    <Badge colorScheme={STATUS_COLOR_SCHEMES[status]} borderRadius="full" px={2.5} py={0.5}>
+    <Badge colorScheme={STATUS_COLOR_SCHEMES[status]} px={2.5} py={0.5}>
       {STATUS_LABELS[status]}
     </Badge>
   );

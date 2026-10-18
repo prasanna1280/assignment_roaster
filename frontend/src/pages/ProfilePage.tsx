@@ -17,8 +17,8 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GlassCard } from '../components/ui/GlassCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { SectionCard } from '../components/ui/SectionCard';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { validateAvatarUrl, validateFullName } from '../components/auth/validation';
 import { useAuth } from '../hooks/useAuth';
 import { getAuthErrorMessage } from '../services/authService';
@@ -66,7 +66,7 @@ export function ProfilePage() {
     setIsSaving(true);
     try {
       await updateProfile(payload);
-      toast({ status: 'success', title: 'Profile update aagiduchu! 🎉', duration: 3000, isClosable: true });
+      toast({ status: 'success', title: 'Profile updated', duration: 3000, isClosable: true });
     } catch (err) {
       setServerError(getAuthErrorMessage(err));
     } finally {
@@ -83,7 +83,7 @@ export function ProfilePage() {
           Un profile
         </Heading>
 
-        <GlassCard disableHover>
+        <SectionCard>
           <HStack spacing={5} align="center" flexWrap="wrap">
             <Avatar size="xl" name={user.full_name} src={user.avatar_url ?? undefined} />
             <Stack spacing={1} minW={0}>
@@ -94,16 +94,16 @@ export function ProfilePage() {
                 {user.email}
               </Text>
               <HStack spacing={2} flexWrap="wrap">
-                <Badge colorScheme="brand" borderRadius="full" px={2}>
+                <Badge colorScheme="brand" px={2}>
                   {providerLabel(user.oauth_provider)} login
                 </Badge>
                 {user.is_admin && (
-                  <Badge colorScheme="purple" borderRadius="full" px={2}>
+                  <Badge colorScheme="purple" px={2}>
                     Admin
                   </Badge>
                 )}
                 {user.is_verified && (
-                  <Badge colorScheme="green" borderRadius="full" px={2}>
+                  <Badge colorScheme="green" px={2}>
                     Verified
                   </Badge>
                 )}
@@ -115,9 +115,9 @@ export function ProfilePage() {
               )}
             </Stack>
           </HStack>
-        </GlassCard>
+        </SectionCard>
 
-        <GlassCard disableHover>
+        <SectionCard>
           <form onSubmit={handleSubmit} noValidate aria-label="Profile form">
             <Stack spacing={4}>
               <Heading as="h2" size="md">
@@ -155,13 +155,13 @@ export function ProfilePage() {
                 )}
               </FormControl>
               <HStack justify="flex-end">
-                <GradientButton type="submit" isLoading={isSaving} loadingText="Saving...">
+                <PrimaryButton type="submit" isLoading={isSaving} loadingText="Saving...">
                   Save changes
-                </GradientButton>
+                </PrimaryButton>
               </HStack>
             </Stack>
           </form>
-        </GlassCard>
+        </SectionCard>
       </Stack>
     </PageWrapper>
   );

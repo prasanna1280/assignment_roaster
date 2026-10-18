@@ -11,7 +11,7 @@ export function GoogleLoginButton({ children = 'Continue with Google', ...rest }
     <Button
       w="full"
       variant="outline"
-      borderRadius="full"
+      borderRadius="md"
       size="lg"
       leftIcon={<FcGoogle />}
       onClick={loginWithGoogle}

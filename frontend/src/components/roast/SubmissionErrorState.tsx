@@ -1,7 +1,7 @@
 import { Button, Heading, HStack, Icon, Stack, Text } from '@chakra-ui/react';
 import { FiAlertTriangle, FiRefreshCw } from 'react-icons/fi';
-import { GlassCard } from '../ui/GlassCard';
-import { GradientButton } from '../ui/GradientButton';
+import { SectionCard } from '../ui/SectionCard';
+import { PrimaryButton } from '../ui/PrimaryButton';
 import { getErrorTip } from './errorTips';
 
 export interface SubmissionErrorStateProps {
@@ -14,12 +14,12 @@ export interface SubmissionErrorStateProps {
 export function SubmissionErrorState({ errorCode, errorMessage, onRetry, isRetrying = false }: SubmissionErrorStateProps) {
   const { tip, retryable } = getErrorTip(errorCode);
   return (
-    <GlassCard disableHover borderColor="severity.high" role="alert">
+    <SectionCard borderColor="severity.high" role="alert">
       <Stack spacing={4} align="flex-start">
         <HStack spacing={3}>
           <Icon as={FiAlertTriangle} boxSize={7} color="severity.high" aria-hidden="true" />
           <Heading as="h2" size="md">
-            Aiyo, roast fail aayiduchu!
+            This roast didn't finish
           </Heading>
         </HStack>
         <Text fontSize="lg">{errorMessage ?? 'Something went wrong while roasting this repo.'}</Text>
@@ -41,10 +41,10 @@ export function SubmissionErrorState({ errorCode, errorMessage, onRetry, isRetry
               Try again
             </Button>
           )}
-          <GradientButton to="/roast/new">Roast another repo</GradientButton>
+          <PrimaryButton to="/roast/new">Roast another repo</PrimaryButton>
         </HStack>
       </Stack>
-    </GlassCard>
+    </SectionCard>
   );
 }
 

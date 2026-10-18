@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box, Heading, Stack, Text } from '@chakra-ui/react';
-import { GlassCard } from '../ui/GlassCard';
+import { SectionCard } from '../ui/SectionCard';
 
 export interface AuthCardProps {
   title: string;
@@ -9,10 +9,10 @@ export interface AuthCardProps {
   footer?: ReactNode;
 }
 
-/** Centered glass card used by the login / register / forgot-password pages. */
+/** Centered card used by the login / register / forgot-password pages. */
 export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
   return (
-    <GlassCard disableHover maxW="md" mx="auto" p={{ base: 6, md: 8 }}>
+    <SectionCard maxW="md" mx="auto" p={{ base: 6, md: 8 }}>
       <Stack spacing={6}>
         <Stack spacing={2} textAlign="center">
           <Heading as="h1" size="lg">
@@ -27,7 +27,7 @@ export function AuthCard({ title, subtitle, children, footer }: AuthCardProps) {
           </Box>
         )}
       </Stack>
-    </GlassCard>
+    </SectionCard>
   );
 }
 

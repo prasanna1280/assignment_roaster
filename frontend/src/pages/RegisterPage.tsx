@@ -11,13 +11,13 @@ export function RegisterPage() {
   return (
     <PageWrapper maxW="container.sm">
       <AuthCard
-        title="Pudhu account create pannunga"
+        title="Create your account"
         subtitle="Sign up and get your first repo roasted in minutes."
         footer={
           <Text>
             Already account iruka?{' '}
             <Link as={RouterLink} to="/login" state={location.state} color="accent.fg" fontWeight="semibold">
-              Login pannunga
+              Log in
             </Link>
           </Text>
         }

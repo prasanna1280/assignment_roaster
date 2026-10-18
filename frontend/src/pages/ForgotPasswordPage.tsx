@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { PageWrapper } from '../components/ui/PageWrapper';
 import { AuthCard } from '../components/auth/AuthCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { GoogleLoginButton } from '../components/auth/GoogleLoginButton';
 import { validateEmail } from '../components/auth/validation';
 
@@ -34,8 +34,8 @@ export function ForgotPasswordPage() {
   return (
     <PageWrapper maxW="container.sm">
       <AuthCard
-        title="Password marandhuteengala?"
-        subtitle="No tension — namma help panrom."
+        title="Forgot your password?"
+        subtitle="We can help you get back in."
         footer={
           <Text>
             Nyabagam vandhuducha?{' '}
@@ -50,7 +50,7 @@ export function ForgotPasswordPage() {
             <Alert status="info" borderRadius="lg">
               <AlertIcon />
               <AlertDescription>
-                Password reset email coming soon — for now, Google login try pannunga.
+                Password reset by email is coming soon. For now, sign in with Google.
               </AlertDescription>
             </Alert>
           )}
@@ -62,15 +62,15 @@ export function ForgotPasswordPage() {
                   id="forgot-email"
                   type="email"
                   autoComplete="email"
-                  placeholder="nee@example.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <FormErrorMessage>{error}</FormErrorMessage>
               </FormControl>
-              <GradientButton type="submit" w="full">
+              <PrimaryButton type="submit" w="full">
                 Send reset link
-              </GradientButton>
+              </PrimaryButton>
             </Stack>
           </form>
           {submitted && <GoogleLoginButton />}

@@ -22,7 +22,7 @@ async function fillForm(name: string, email: string, password: string) {
   if (name) await userEvent.type(screen.getByLabelText(/full name/i), name);
   if (email) await userEvent.type(screen.getByLabelText(/^email/i), email);
   if (password) await userEvent.type(screen.getByLabelText(/^password/i), password);
-  await userEvent.click(screen.getByRole('button', { name: /sign up pannunga/i }));
+  await userEvent.click(screen.getByRole('button', { name: /create account/i }));
 }
 
 describe('RegisterForm', () => {
@@ -36,7 +36,7 @@ describe('RegisterForm', () => {
 
     expect(await screen.findByText(/full name is required/i)).toBeInTheDocument();
     expect(screen.getByText(/valid email/i)).toBeInTheDocument();
-    expect(screen.getByText(/at least 8 characters irukanum/i)).toBeInTheDocument();
+    expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
     expect(registerSpy).not.toHaveBeenCalled();
   });
 
@@ -47,7 +47,7 @@ describe('RegisterForm', () => {
     renderRegister();
     await fillForm('Kavya Raman', 'kavya@example.com', 'secret123');
 
-    expect(await screen.findByText(/already register aagiruku\. login pannunga/i)).toBeInTheDocument();
+    expect(await screen.findByText(/already exists\. please log in/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /go to login/i })).toHaveAttribute('href', '/login');
   });
 

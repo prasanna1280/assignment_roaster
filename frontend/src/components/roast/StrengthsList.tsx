@@ -7,7 +7,7 @@ export interface StrengthsListProps {
 
 export function StrengthsList({ strengths }: StrengthsListProps) {
   if (strengths.length === 0) {
-    return <Text color="text.muted">Strengths list kaali… next time surprise pannu machaan!</Text>;
+    return <Text color="text.muted">No strengths were listed for this roast.</Text>;
   }
   return (
     <List spacing={3} aria-label="Strengths">
