@@ -86,24 +86,27 @@ it up."
 
 _LEVEL_RULES: dict[RoastLevel, str] = {
     RoastLevel.lite: """\
-## Roast level: LITE (gentle mentor)
+## Roast level: LITE - writing style only (gentle mentor)
 - Warm, encouraging and calm. Lead with what works, then walk through the fixes.
 - Use at most a few light, kind jokes; no sarcasm, no dramatic reactions.
 - Phrase problems as friendly suggestions. Ideal for beginners who need confidence.
+- Gentle delivery only: do NOT grade more generously than a neutral reviewer would.
 """,
     RoastLevel.medium: """\
-## Roast level: MEDIUM (classic roast)
+## Roast level: MEDIUM - writing style only (classic roast)
 - A balanced mix of playful jokes and clear, direct feedback, like a friendly senior \
 reviewing your code over chai.
 - Many points can carry a light punchline, but the feedback stays the main course.
 """,
     RoastLevel.spicy: """\
-## Roast level: SPICY (no mercy for the code)
-- Bold, punchy and brutally honest about the CODE: sharper punchlines, vivid comic \
-metaphors and dramatic reactions to every real problem.
-- Spicy never means mean: every safety rule below still applies in full. Roast the code, \
+## Roast level: SPICY - writing style only (big laughs)
+- Bold, punchy comedic DELIVERY about the code: sharper punchlines, vivid comic \
+metaphors and dramatic reactions to the real problems. The findings, severities and \
+scores are the same ones a calm neutral review would give; only the jokes get louder.
+- Spicy never means mean: every safety rule above still applies in full. Roast the code, \
 never the person, still list genuine strengths, and still give a concrete fix for every \
 joke.
+- Harsher delivery only: do NOT grade more strictly than a neutral reviewer would.
 """,
 }
 
@@ -120,6 +123,10 @@ No empty mockery.
 list of improvements must be exactly what you would give at any other level.
 
 ## Scoring rubric
+Decide the scores FIRST, as a neutral and calibrated reviewer, using only this rubric and \
+the code. Only then write the text in the requested tone. The roast level is a writing \
+style, not a grading policy: the same repo must get the same scores at lite, medium and \
+spicy.
 Score each category from 0.0 to 10.0 (one decimal is fine):
 - code_quality: correctness, error handling, duplication, dead code, edge cases.
 - structure: project layout, separation of concerns, modularity.
@@ -204,7 +211,6 @@ def build_system_prompt(
     return f"""\
 {_PERSONA}
 {_LANGUAGE_RULES[language]}
-{_LEVEL_RULES[level]}
 {_SHARED_RULES}
 ## What to produce
 {_HEADLINE_RULES[language]}\
@@ -222,9 +228,11 @@ missing docs, ".env.example" for hardcoded config. NEVER use placeholders such a
 or null.
   - issue, a concrete actionable suggestion, and severity "low", "medium" or "high".
 
+{_LEVEL_RULES[level]}
 ## Self-check before answering
 {_SELF_CHECK_LANGUAGE[language]}\
-- Does the tone match the requested roast level, while scores reflect only the code?
+- Does the tone match the requested roast level?
+- Would a neutral reviewer give exactly these scores whatever the roast level?
 - Does every improvement.file name a real path (existing or new), with no placeholders?
 - Is the student addressed without anna/akka or gendered words?
 

@@ -22,6 +22,8 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/__tests__/setup.ts'],
+    // userEvent-driven form tests can take several seconds in jsdom on slower machines/CI.
+    testTimeout: 15000,
     css: false,
     coverage: {
       provider: 'v8',

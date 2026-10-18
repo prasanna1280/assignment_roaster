@@ -75,6 +75,10 @@ const styles = {
       color: 'text.primary',
       WebkitFontSmoothing: 'antialiased',
     },
+    '@media print': {
+      body: { bg: 'white' },
+    },
+    '@page': { margin: '14mm' },
     '::selection': {
       bg: 'brand.100',
       color: 'brand.900',

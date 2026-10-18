@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Box, type BoxProps } from '@chakra-ui/react';
+import { avoidPrintBreak } from '../../lib/print';
 
 export interface SectionCardProps extends BoxProps {
   children: ReactNode;
@@ -19,6 +20,7 @@ export function SectionCard({ children, interactive = false, ...rest }: SectionC
       boxShadow="card"
       transition="border-color 0.15s, box-shadow 0.15s"
       _hover={interactive ? { borderColor: 'border.strong', boxShadow: 'cardHover' } : undefined}
+      sx={avoidPrintBreak}
       {...rest}
     >
       {children}

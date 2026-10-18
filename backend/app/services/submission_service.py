@@ -21,7 +21,7 @@ from app.database import SessionLocal
 from app.exceptions import BadRequestError, ConflictError, NotFoundError, RateLimitError
 from app.models.roast import Roast
 from app.models.roast_attempt import RoastAttempt
-from app.models.submission import Submission, SubmissionStatus
+from app.models.submission import RoastLanguage, Submission, SubmissionStatus
 from app.models.user import User
 from app.schemas.submission import QuotaResponse, ReroastRequest, SubmissionCreate
 from app.services import github_service, repo_filter_service, roast_service
@@ -39,7 +39,7 @@ _BRANCH_RE = re.compile(r"^[A-Za-z0-9._/\-]{1,255}$")
 
 TERMINAL_STATUSES = frozenset({SubmissionStatus.completed, SubmissionStatus.failed})
 
-FRIENDLY_ERRORS: dict[str, str] = {
+_TANGLISH_ERRORS: dict[str, str] = {
     "repo_not_found_or_private": (
         "Repo private ah illa URL thappa? Public repo link kudu machaan! "
         "(Settings → Change visibility → Public)"
@@ -66,6 +66,64 @@ FRIENDLY_ERRORS: dict[str, str] = {
     ),
     "internal_error": "Edho thappa poiduchu machaan. Konjam kazhichu re-roast pannu.",
 }
+
+_ENGLISH_ERRORS: dict[str, str] = {
+    "repo_not_found_or_private": (
+        "We couldn't find that repo. It may be private or the URL may be wrong. Make it public "
+        "(Settings → Change visibility → Public) or check the link."
+    ),
+    "branch_not_found": "That branch doesn't exist. Check the branch name and try again.",
+    "github_rate_limited": (
+        "GitHub is rate limiting us right now. Please try again in 10-15 minutes."
+    ),
+    "github_unavailable": "GitHub is having trouble right now. Please try again shortly.",
+    "repo_too_large": (
+        "This repo is over 25 MB. Remove build output, datasets or node_modules and try again."
+    ),
+    "repo_empty": "There's no source code to review yet. Push your files and try again.",
+    "repo_unreadable": "We couldn't read the repo archive. Please try again shortly.",
+    "ai_invalid_output": (
+        "The AI reviewer returned an unusable answer. Click Re-roast and it should work next time."
+    ),
+    "ai_unavailable": "The AI reviewer is busy right now. Please re-roast in a few minutes.",
+    "internal_error": "Something went wrong on our side. Please re-roast in a moment.",
+}
+
+_TAMIL_ERRORS: dict[str, str] = {
+    "repo_not_found_or_private": (
+        "இந்த repo கிடைக்கவில்லை. Repo private ஆக இருக்கலாம் அல்லது URL தவறாக இருக்கலாம். "
+        "Repo-வை public ஆக்குங்கள் (Settings → Change visibility → Public) அல்லது link-ஐ "
+        "சரிபாருங்கள்."
+    ),
+    "branch_not_found": "அந்த branch இல்லை. Branch பெயரை சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+    "github_rate_limited": (
+        "GitHub இப்போது rate limit செய்கிறது. 10-15 நிமிடங்கள் கழித்து முயற்சிக்கவும்."
+    ),
+    "github_unavailable": "GitHub-ல் இப்போது சிக்கல் உள்ளது. சிறிது நேரம் கழித்து முயற்சிக்கவும்.",
+    "repo_too_large": (
+        "இந்த repo 25 MB-க்கு மேல் உள்ளது. Build files, datasets, node_modules ஆகியவற்றை "
+        "நீக்கிவிட்டு முயற்சிக்கவும்."
+    ),
+    "repo_empty": "Review செய்ய code இல்லை. Source files-ஐ push செய்துவிட்டு மீண்டும் வாருங்கள்.",
+    "repo_unreadable": "Repo archive-ஐ படிக்க முடியவில்லை. சிறிது நேரம் கழித்து முயற்சிக்கவும்.",
+    "ai_invalid_output": (
+        "AI reviewer சரியான பதில் தரவில்லை. Re-roast click செய்யுங்கள், அடுத்த முறை சரியாக வரும்."
+    ),
+    "ai_unavailable": "AI reviewer இப்போது busy-ஆக உள்ளது. சில நிமிடங்கள் கழித்து re-roast செய்யுங்கள்.",
+    "internal_error": "எங்கள் பக்கம் ஏதோ தவறு நடந்தது. சிறிது நேரம் கழித்து re-roast செய்யுங்கள்.",
+}
+
+FRIENDLY_ERRORS: dict[RoastLanguage, dict[str, str]] = {
+    RoastLanguage.english: _ENGLISH_ERRORS,
+    RoastLanguage.tamil: _TAMIL_ERRORS,
+    RoastLanguage.tanglish: _TANGLISH_ERRORS,
+}
+
+
+def friendly_error(code: str, language: RoastLanguage) -> str:
+    """Return the student-facing message for an error code in the roast's language."""
+    messages = FRIENDLY_ERRORS.get(language, _ENGLISH_ERRORS)
+    return messages.get(code, messages["internal_error"])
 
 
 @dataclass(frozen=True)
@@ -163,8 +221,8 @@ def _enforce_daily_limit(db: Session, user_id: int) -> None:
     """Raise 429 ``daily_limit_reached`` when the user is out of roasts for today."""
     if count_used_today(db, user_id) >= settings.ROAST_DAILY_LIMIT:
         raise RateLimitError(
-            f"Indha naalukku {settings.ROAST_DAILY_LIMIT} roasts mudinjiduchu machaan! "
-            "Naalaikku vaa (resets at 00:00 UTC).",
+            f"You've used all {settings.ROAST_DAILY_LIMIT} roasts for today. "
+            "Your quota resets at 00:00 UTC.",
             error_code="daily_limit_reached",
         )
 
@@ -254,7 +312,7 @@ def start_reroast(
     submission = get_submission(db, user.id, submission_id)
     if submission.status not in TERMINAL_STATUSES:
         raise ConflictError(
-            "Idhu already roast aagittu irukku machaan, konjam wait pannu!",
+            "This repo is already being roasted. Please wait for it to finish.",
             error_code="already_processing",
         )
     _enforce_daily_limit(db, user.id)
@@ -290,7 +348,7 @@ def _mark_failed(submission_id: int, code: str) -> None:
             return
         submission.status = SubmissionStatus.failed
         submission.error_code = code
-        submission.error_message = FRIENDLY_ERRORS.get(code, FRIENDLY_ERRORS["internal_error"])
+        submission.error_message = friendly_error(code, submission.roast_language)
         submission.completed_at = _now()
         db.commit()
     except Exception:
@@ -358,7 +416,7 @@ async def _run_pipeline(db: Session, submission: Submission) -> None:
 async def process_submission(submission_id: int) -> None:
     """Background task: run the roast pipeline and always end in a terminal status.
 
-    Opens its own DB session. Domain failures are mapped to friendly Tanglish
+    Opens its own DB session. Domain failures are mapped to friendly
     ``error_message``s; technical details are only logged.
     """
     db = SessionLocal()

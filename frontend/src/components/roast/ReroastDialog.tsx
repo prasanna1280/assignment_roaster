@@ -44,8 +44,8 @@ export function ReroastDialog({ isOpen, onClose, initialLevel, initialLanguage, 
         <ModalCloseButton />
         <ModalBody>
           <Text color="text.muted" fontSize="sm" mb={5}>
-            Fetches the latest code and roasts it again. Uses one roast from today&apos;s quota. Scores don&apos;t
-            depend on the level; only the tone changes.
+            Fetches the latest code and roasts it again. Uses one roast from today&apos;s quota. The level changes
+            the tone, not the scoring rubric.
           </Text>
           <RoastModePicker
             level={level}

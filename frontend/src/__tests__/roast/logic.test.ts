@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { isValidRepoUrl, parseRepoUrl, validateRepoUrl } from '../../lib/repoUrl';
 import { isTerminalStatus, POLL_INTERVAL_MS, submissionRefetchInterval } from '../../hooks/useSubmissions';
-import { formatScore, sortBySeverity, toScore } from '../../components/roast/roastUtils';
+import { fixesToMarkdown, formatScore, sortBySeverity, toScore } from '../../components/roast/roastUtils';
 import { getErrorTip } from '../../components/roast/errorTips';
 import { makeSubmission, mockRoast } from './fixtures';
 
@@ -84,5 +84,30 @@ describe('roast utils', () => {
     expect(getErrorTip('github_rate_limited').tip).toMatch(/few minutes/i);
     expect(getErrorTip('repo_too_large').tip).toMatch(/smaller repo/i);
     expect(getErrorTip('something_new').tip).toMatch(/try again/i);
+  });
+});
+
+describe('fixesToMarkdown', () => {
+  it('builds a severity-ordered task list', () => {
+    const md = fixesToMarkdown(mockRoast.improvements, 'kavya/todo-api');
+    const lines = md.split('\n');
+    expect(lines[0]).toBe('## Fixes for kavya/todo-api');
+    expect(lines[2]).toBe(
+      '- [ ] **High** `app/main.py` (L10-L40): Hardcoded secret key. Fix: Use env vars',
+    );
+    expect(lines[3]).toContain('**Medium** `app/utils.py`');
+    expect(lines[4]).toBe('- [ ] **Low** `README.md`: README is just TODO. Fix: Write setup steps');
+  });
+
+  it('does not double up trailing periods or eat trailing letters', () => {
+    const md = fixesToMarkdown(
+      [
+        { file: 'a.py', line_hint: null, issue: 'Too many globals.', suggestion: 'Pass args', severity: 'low' },
+        { file: 'b.py', line_hint: null, issue: 'Missing tests', suggestion: 'Add some', severity: 'low' },
+      ],
+      'o/r',
+    );
+    expect(md).toContain('Too many globals. Fix:');
+    expect(md).toContain('Missing tests. Fix:');
   });
 });

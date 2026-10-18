@@ -21,10 +21,19 @@ import {
   Spinner,
   Stack,
   Text,
+  useColorMode,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import { FiExternalLink, FiGitBranch, FiRefreshCw, FiSearch, FiTrash2 } from 'react-icons/fi';
+import {
+  FiClipboard,
+  FiDownload,
+  FiExternalLink,
+  FiGitBranch,
+  FiRefreshCw,
+  FiSearch,
+  FiTrash2,
+} from 'react-icons/fi';
 import { PageWrapper } from '../components/ui/PageWrapper';
 import { SectionCard } from '../components/ui/SectionCard';
 import { PrimaryButton } from '../components/ui/PrimaryButton';
@@ -37,9 +46,16 @@ import { FixList } from '../components/roast/FixList';
 import { StatusStepper } from '../components/roast/StatusStepper';
 import { StatusBadge } from '../components/roast/StatusBadge';
 import { SubmissionErrorState } from '../components/roast/SubmissionErrorState';
-import { formatRelativeDate, scoreVerdict } from '../components/roast/roastUtils';
+import { fixesToMarkdown, formatRelativeDate, scoreVerdict } from '../components/roast/roastUtils';
 import { ReroastDialog } from '../components/roast/ReroastDialog';
 import { useDeleteSubmission, useReroast, useSubmission } from '../hooks/useSubmissions';
+import {
+  allowPrintBreak,
+  hideWhenPrinting,
+  rowWhenPrinting,
+  showOnlyWhenPrinting,
+  twoColumnsWhenPrinting,
+} from '../lib/print';
 import { roastLanguageLabel, roastLevelLabel } from '../lib/roastModes';
 import { getErrorMessage } from '../services/api';
 import type { ReroastOptions, Roast, Submission } from '../types';
@@ -118,11 +134,16 @@ function RepoHeader({ submission }: { submission: Submission }) {
   );
 }
 
-function CompletedRoast({ roast }: { roast: Roast }) {
+interface CompletedRoastProps {
+  roast: Roast;
+  onCopyFixes: () => void;
+}
+
+function CompletedRoast({ roast, onCopyFixes }: CompletedRoastProps) {
   return (
     <Stack spacing={6}>
       <SectionCard>
-        <Flex direction={{ base: 'column', md: 'row' }} gap={8} align="center">
+        <Flex direction={{ base: 'column', md: 'row' }} gap={8} align="center" sx={rowWhenPrinting}>
           <Stack align="center" spacing={2}>
             <ScoreRing score={roast.overall_score} />
             <Text fontSize="sm" color="text.muted" textAlign="center">
@@ -135,7 +156,7 @@ function CompletedRoast({ roast }: { roast: Roast }) {
         </Flex>
       </SectionCard>
 
-      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+      <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6} sx={twoColumnsWhenPrinting}>
         <SectionCard>
           <Heading as="h2" size="md" mb={5}>
             Category scores
@@ -150,17 +171,29 @@ function CompletedRoast({ roast }: { roast: Roast }) {
         </SectionCard>
       </SimpleGrid>
 
-      <SectionCard>
+      <SectionCard sx={allowPrintBreak}>
         <Heading as="h2" size="md" mb={5}>
           The roast
         </Heading>
         <RoastMarkdown content={roast.roast_text} />
       </SectionCard>
 
-      <SectionCard>
-        <Heading as="h2" size="md" mb={5}>
-          Fixes, by priority
-        </Heading>
+      <SectionCard sx={allowPrintBreak}>
+        <Flex justify="space-between" align="center" gap={3} mb={5} flexWrap="wrap">
+          <Heading as="h2" size="md">
+            Fixes, by priority
+          </Heading>
+          <Button
+            size="sm"
+            variant="outline"
+            colorScheme="gray"
+            leftIcon={<FiClipboard aria-hidden="true" />}
+            onClick={onCopyFixes}
+            sx={hideWhenPrinting}
+          >
+            Copy as checklist
+          </Button>
+        </Flex>
         <FixList improvements={roast.improvements} />
       </SectionCard>
     </Stack>
@@ -173,6 +206,7 @@ export function SubmissionDetailPage() {
   const validId = Number.isInteger(id) && id > 0;
   const navigate = useNavigate();
   const toast = useToast();
+  const { colorMode, setColorMode } = useColorMode();
   const deleteDialog = useDisclosure();
   const reroastDialog = useDisclosure();
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -188,6 +222,40 @@ export function SubmissionDetailPage() {
       toast({ status: 'info', title: 'Re-roast started', description: 'A fresh review is on the way.', isClosable: true });
     } catch (err) {
       toast({ status: 'error', title: 'Could not start the re-roast', description: getErrorMessage(err), isClosable: true });
+    }
+  };
+
+  const handleCopyFixes = async (submission: Submission, roast: Roast) => {
+    const repoName = `${submission.repo_owner}/${submission.repo_name}`;
+    try {
+      await navigator.clipboard.writeText(fixesToMarkdown(roast.improvements, repoName));
+      toast({
+        status: 'success',
+        title: 'Fixes copied',
+        description: 'Paste them into a GitHub issue or your notes.',
+        isClosable: true,
+      });
+    } catch {
+      toast({ status: 'error', title: 'Could not copy', description: 'Your browser blocked clipboard access.', isClosable: true });
+    }
+  };
+
+  const handleDownloadPdf = (submission: Submission) => {
+    // The browser suggests the document title as the PDF file name.
+    const previousTitle = document.title;
+    const wasDark = colorMode === 'dark';
+    const printReport = () => {
+      document.title = `${submission.repo_name} code review - Assignment Roaster`;
+      window.print();
+      document.title = previousTitle;
+      if (wasDark) setColorMode('dark');
+    };
+    if (wasDark) {
+      // Reports always print on a light background; switch back once the dialog closes.
+      setColorMode('light');
+      window.setTimeout(printReport, 150);
+    } else {
+      printReport();
     }
   };
 
@@ -254,10 +322,24 @@ export function SubmissionDetailPage() {
   return (
     <PageWrapper maxW="container.xl">
       <Stack spacing={8}>
+        <Flex sx={showOnlyWhenPrinting} justify="space-between" borderBottomWidth="1px" borderColor="border.subtle" pb={3}>
+          <Text fontWeight="semibold">Assignment Roaster · Code review report</Text>
+          <Text color="text.muted">{new Date().toLocaleDateString()}</Text>
+        </Flex>
         <Flex justify="space-between" gap={4} direction={{ base: 'column', md: 'row' }} align={{ md: 'flex-end' }}>
           <RepoHeader submission={submission} />
           {!isProcessing && (
-            <HStack spacing={3} flexWrap="wrap">
+            <HStack spacing={3} flexWrap="wrap" sx={hideWhenPrinting}>
+              {submission.status === 'completed' && roast && (
+                <Button
+                  leftIcon={<FiDownload aria-hidden="true" />}
+                  variant="outline"
+                  colorScheme="gray"
+                  onClick={() => handleDownloadPdf(submission)}
+                >
+                  Download PDF
+                </Button>
+              )}
               <Button
                 leftIcon={<FiRefreshCw aria-hidden="true" />}
                 variant="outline"
@@ -297,7 +379,7 @@ export function SubmissionDetailPage() {
 
         {submission.status === 'completed' &&
           (roast ? (
-            <CompletedRoast roast={roast} />
+            <CompletedRoast roast={roast} onCopyFixes={() => void handleCopyFixes(submission, roast)} />
           ) : (
             <SubmissionErrorState
               errorCode="internal_error"

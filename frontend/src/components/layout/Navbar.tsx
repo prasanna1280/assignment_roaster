@@ -30,6 +30,7 @@ import {
 } from '@chakra-ui/react';
 import { FiLogOut, FiMenu, FiMoon, FiSettings, FiSun, FiUser } from 'react-icons/fi';
 import { useAuth } from '../../hooks/useAuth';
+import { hideWhenPrinting } from '../../lib/print';
 import { PrimaryButton } from '../ui/PrimaryButton';
 
 interface NavItem {
@@ -91,6 +92,7 @@ export function Navbar() {
       top={0}
       zIndex="sticky"
       bg="bg.surface"
+      sx={hideWhenPrinting}
       borderBottomWidth="1px"
       borderColor="border.subtle"
     >

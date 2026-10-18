@@ -42,7 +42,8 @@ describe('NewRoastPage', () => {
     const user = userEvent.setup();
     renderNewRoast();
 
-    await user.type(screen.getByLabelText(/github repo url/i), 'https://gitlab.com/kavya/todo');
+    await user.click(screen.getByLabelText(/github repo url/i));
+    await user.paste('https://gitlab.com/kavya/todo');
     await user.click(screen.getByRole('button', { name: /roast it/i }));
 
     expect(await screen.findByText(/only https:\/\/github\.com\/ links work/i)).toBeInTheDocument();
@@ -55,7 +56,8 @@ describe('NewRoastPage', () => {
     renderNewRoast();
 
     expect(await screen.findByText(/2 of 3 roasts left today/i)).toBeInTheDocument();
-    await user.type(screen.getByLabelText(/github repo url/i), 'https://github.com/kavya/todo-api');
+    await user.click(screen.getByLabelText(/github repo url/i));
+    await user.paste('https://github.com/kavya/todo-api');
     await user.type(screen.getByLabelText(/assignment title/i), 'Week 3');
     await user.click(screen.getByRole('button', { name: /roast it/i }));
 
@@ -75,7 +77,8 @@ describe('NewRoastPage', () => {
     mocked.create.mockResolvedValue(makeSubmission({ id: 78, status: 'queued', latest_roast: null }));
     renderNewRoast();
 
-    await user.type(screen.getByLabelText(/github repo url/i), 'https://github.com/kavya/todo-api');
+    await user.click(screen.getByLabelText(/github repo url/i));
+    await user.paste('https://github.com/kavya/todo-api');
     await user.click(screen.getByRole('radio', { name: /spicy/i }));
     await user.click(screen.getByRole('radio', { name: /^english/i }));
     await user.click(screen.getByRole('button', { name: /roast it/i }));
@@ -126,6 +129,33 @@ describe('SubmissionDetailPage', () => {
     expect(screen.getByRole('button', { name: /re-roast/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
     expect(screen.getByTestId('roast-mode')).toHaveTextContent('Medium · Tanglish');
+  });
+
+  it('copies the fixes as a markdown checklist', async () => {
+    const user = userEvent.setup();
+    mocked.get.mockResolvedValue(makeSubmission());
+    renderDetail();
+
+    await user.click(await screen.findByRole('button', { name: /copy as checklist/i }));
+    const copied = await navigator.clipboard.readText();
+    expect(copied).toContain('## Fixes for kavya/todo-api');
+    expect(copied).toContain('- [ ] **High** `app/main.py` (L10-L40): Hardcoded secret key');
+    expect(await screen.findByText('Fixes copied')).toBeInTheDocument();
+  });
+
+  it('prints the report for PDF download with a descriptive title', async () => {
+    const user = userEvent.setup();
+    let titleDuringPrint = '';
+    const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {
+      titleDuringPrint = document.title;
+    });
+    mocked.get.mockResolvedValue(makeSubmission());
+    renderDetail();
+
+    await user.click(await screen.findByRole('button', { name: /download pdf/i }));
+    expect(printSpy).toHaveBeenCalledTimes(1);
+    expect(titleDuringPrint).toBe('todo-api code review - Assignment Roaster');
+    printSpy.mockRestore();
   });
 
   it('re-roasts with a different level and language from the dialog', async () => {

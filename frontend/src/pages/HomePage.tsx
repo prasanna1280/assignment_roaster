@@ -48,7 +48,7 @@ const TRUST_POINTS: Feature[] = [
   {
     icon: FiCpu,
     title: 'Fair, consistent scoring',
-    description: 'The roast level only changes the tone. Scores follow the same rubric every time.',
+    description: 'The roast level only changes the tone. Every roast is scored on the same six-category rubric.',
   },
 ];
 
@@ -159,7 +159,7 @@ export function HomePage() {
           <Heading as="h2" id="modes-heading" size="lg">
             Choose your roast
           </Heading>
-          <Text color="text.muted">Same rubric, same scores. You choose the tone and the language.</Text>
+          <Text color="text.muted">Every level is scored on the same rubric. You choose the tone and the language.</Text>
         </Stack>
         <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
           <SectionCard>

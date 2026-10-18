@@ -162,4 +162,4 @@ def test_level_sections_differ() -> None:
     lite = build_system_prompt(RoastLevel.lite, RoastLanguage.english)
     spicy = build_system_prompt(RoastLevel.spicy, RoastLanguage.english)
     assert "gentle mentor" in lite and "no sarcasm" in lite
-    assert "no mercy for the code" in spicy and "Spicy never means mean" in spicy
+    assert "big laughs" in spicy and "Spicy never means mean" in spicy

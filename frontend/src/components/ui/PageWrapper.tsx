@@ -17,6 +17,7 @@ export function PageWrapper({ children, maxW = 'container.lg' }: PageWrapperProp
       transition={{ duration: 0.2 }}
       minH="calc(100vh - 64px)"
       py={{ base: 8, md: 12 }}
+      sx={{ '@media print': { minH: 0, py: 0 } }}
     >
       <Container maxW={maxW} px={{ base: 4, md: 6 }}>
         {children}

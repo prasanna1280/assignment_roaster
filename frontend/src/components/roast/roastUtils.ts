@@ -114,3 +114,12 @@ export function formatRelativeDate(iso: string, now: Date = new Date()): string 
 export function isQuotaExhausted(quota: Quota | undefined): boolean {
   return Boolean(quota && quota.used >= quota.limit);
 }
+
+/** Markdown task list of fixes (high → low), ready to paste into a GitHub issue. */
+export function fixesToMarkdown(improvements: Improvement[], repoName: string): string {
+  const lines = sortBySeverity(improvements).map((item) => {
+    const location = item.line_hint ? `\`${item.file}\` (${item.line_hint})` : `\`${item.file}\``;
+    return `- [ ] **${SEVERITY_LABELS[item.severity]}** ${location}: ${item.issue.replace(/[.\s]+$/, '')}. Fix: ${item.suggestion}`;
+  });
+  return [`## Fixes for ${repoName}`, '', ...lines, ''].join('\n');
+}

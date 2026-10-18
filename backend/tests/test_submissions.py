@@ -16,7 +16,7 @@ from app.config import settings
 from app.main import app as fastapi_app
 from app.models.roast import Roast
 from app.models.roast_attempt import RoastAttempt
-from app.models.submission import Submission, SubmissionStatus
+from app.models.submission import RoastLanguage, Submission, SubmissionStatus
 from app.models.user import User
 from app.services import github_service, roast_service, submission_service
 from app.services.github_service import GitHubError, RepoMetadata
@@ -606,3 +606,30 @@ def test_reroast_can_switch_mode_and_keeps_history(
     # The first roast keeps the mode it was generated with.
     languages = sorted(r.roast_language.value for r in db.scalars(select(Roast)).all())
     assert languages == ["tamil", "tanglish"]
+
+
+@pytest.mark.parametrize(
+    ("language", "snippet"),
+    [("english", "make it public"), ("tamil", "\u0b87\u0ba8\u0bcd\u0ba4"), ("tanglish", "machaan")],
+)
+def test_failure_message_follows_roast_language(
+    auth_client: TestClient,
+    fake_github: Callable[..., None],
+    fake_openai: Callable[[list[Any]], FakeOpenAIClient],
+    language: str,
+    snippet: str,
+) -> None:
+    fake_github(error=GitHubError("repo_not_found_or_private", "404"))
+    fake_openai([])
+    response = auth_client.post(
+        URL, json={"repo_url": "https://github.com/octo/hello", "roast_language": language}
+    )
+    data = auth_client.get(f"{URL}/{response.json()['id']}").json()
+    assert data["status"] == "failed"
+    assert snippet in data["error_message"].lower()
+
+
+def test_every_language_covers_every_error_code() -> None:
+    codes = set(submission_service.FRIENDLY_ERRORS[RoastLanguage.tanglish])
+    for language in RoastLanguage:
+        assert set(submission_service.FRIENDLY_ERRORS[language]) == codes, language

@@ -1,6 +1,7 @@
 import { Badge, Box, Code, HStack, Heading, Stack, Text } from '@chakra-ui/react';
 import type { Improvement, Severity } from '../../types';
 import { SEVERITY_LABELS, sortBySeverity } from './roastUtils';
+import { InlineCodeText } from './InlineCodeText';
 
 export interface FixListProps {
   improvements: Improvement[];
@@ -56,6 +57,7 @@ export function FixList({ improvements }: FixListProps) {
                   as="li"
                   key={`${imp.file}-${i}`}
                   data-testid="fix-item"
+                  sx={{ '@media print': { breakInside: 'avoid' } }}
                   data-severity={imp.severity}
                   p={4}
                   borderRadius="md"
@@ -77,13 +79,13 @@ export function FixList({ improvements }: FixListProps) {
                     )}
                   </HStack>
                   <Text fontWeight="semibold" mb={1}>
-                    {imp.issue}
+                    <InlineCodeText text={imp.issue} />
                   </Text>
                   <Text color="text.muted">
                     <Text as="span" fontWeight="semibold" color="accent.fg">
                       {'Fix: '}
                     </Text>
-                    {imp.suggestion}
+                    <InlineCodeText text={imp.suggestion} />
                   </Text>
                 </Box>
               ))}
