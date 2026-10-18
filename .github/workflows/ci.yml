@@ -28,6 +28,8 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://roaster:roaster@localhost:5432/assignment_roaster_test
+      # Enables tests/test_postgres_integration.py; it creates and resets its own roaster_pg_test DB.
+      TEST_POSTGRES_URL: postgresql://roaster:roaster@localhost:5432/roaster_pg
       SECRET_KEY: ci-secret
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: "30"
