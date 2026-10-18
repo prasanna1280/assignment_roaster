@@ -75,7 +75,7 @@ const components: Components = {
     </Box>
   ),
   code: ({ children }: ChildrenProps) => (
-    <Code colorScheme="orange" fontSize="0.9em" px={1.5} borderRadius="md">
+    <Code colorScheme="gray" fontSize="0.9em" px={1.5} borderRadius="sm">
       {children}
     </Code>
   ),

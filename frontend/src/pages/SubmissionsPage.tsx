@@ -1,9 +1,9 @@
 import { useSearchParams } from 'react-router-dom';
-import { Button, Flex, Heading, HStack, Skeleton, Stack, Text } from '@chakra-ui/react';
-import { FiChevronLeft, FiChevronRight, FiRefreshCw } from 'react-icons/fi';
+import { Button, Flex, Heading, HStack, Icon, Skeleton, Stack, Text } from '@chakra-ui/react';
+import { FiChevronLeft, FiChevronRight, FiInbox, FiRefreshCw } from 'react-icons/fi';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GlassCard } from '../components/ui/GlassCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { SectionCard } from '../components/ui/SectionCard';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { AnimatedList } from '../components/ui/AnimatedList';
 import { SubmissionCard } from '../components/roast/SubmissionCard';
 import { useSubmissionsList } from '../hooks/useSubmissions';
@@ -41,39 +41,37 @@ export function SubmissionsPage() {
               {total > 0 ? `${total} roast${total === 1 ? '' : 's'} so far. Keep cooking!` : 'Un roast history inga varum.'}
             </Text>
           </Stack>
-          <GradientButton to="/roast/new">🔥 New roast</GradientButton>
+          <PrimaryButton to="/roast/new">New roast</PrimaryButton>
         </Flex>
 
         {query.isLoading ? (
           <Stack spacing={4} aria-busy="true" aria-label="Loading roasts">
             {[0, 1, 2].map((i) => (
-              <Skeleton key={i} h="96px" borderRadius="2xl" />
+              <Skeleton key={i} h="96px" borderRadius="lg" />
             ))}
           </Stack>
         ) : query.isError ? (
-          <GlassCard disableHover role="alert">
+          <SectionCard role="alert">
             <Stack spacing={4} align="flex-start">
               <Text>{getErrorMessage(query.error)}</Text>
               <Button leftIcon={<FiRefreshCw aria-hidden="true" />} onClick={() => void query.refetch()}>
                 Try again
               </Button>
             </Stack>
-          </GlassCard>
+          </SectionCard>
         ) : items.length === 0 ? (
-          <GlassCard disableHover textAlign="center" py={14}>
+          <SectionCard textAlign="center" py={14}>
             <Stack spacing={4} align="center">
-              <Text fontSize="5xl" aria-hidden="true">
-                🍳
-              </Text>
+              <Icon as={FiInbox} boxSize={10} color="text.muted" aria-hidden="true" />
               <Heading as="h2" size="md">
-                Innum oru roast kooda illa!
+                No roasts yet
               </Heading>
               <Text color="text.muted" maxW="md">
-                Submit your first assignment repo and get honest, spicy feedback in under a minute.
+                Submit your first assignment repo and get a scored, honest review in about a minute.
               </Text>
-              <GradientButton to="/roast/new">Roast my first repo</GradientButton>
+              <PrimaryButton to="/roast/new">Roast my first repo</PrimaryButton>
             </Stack>
-          </GlassCard>
+          </SectionCard>
         ) : (
           <AnimatedList spacing={4}>
             {items.map((submission) => (

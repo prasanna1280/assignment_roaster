@@ -12,20 +12,29 @@ export function formatScore(value: number | string | null | undefined): string {
   return Number.isInteger(score) ? String(score) : score.toFixed(1);
 }
 
-/** Chakra palette colour token for a 0–10 score. */
-export function scoreColorToken(value: number | string | null | undefined): string {
+export type ScoreColorToken = 'severity.low' | 'severity.medium' | 'severity.high';
+
+/** Semantic colour token (light/dark aware) for a 0–10 score. */
+export function scoreColorToken(value: number | string | null | undefined): ScoreColorToken {
   const score = toScore(value);
-  if (score >= 7) return 'green.400';
-  if (score >= 4) return 'orange.400';
-  return 'ember.500';
+  if (score >= 7) return 'severity.low';
+  if (score >= 4) return 'severity.medium';
+  return 'severity.high';
 }
+
+/** Raw palette tokens behind the severity colours, for SVG attributes (which can't use CSS vars). */
+export const SEVERITY_PALETTE: Record<ScoreColorToken, { light: string; dark: string }> = {
+  'severity.low': { light: 'green.700', dark: 'green.300' },
+  'severity.medium': { light: 'orange.600', dark: 'orange.300' },
+  'severity.high': { light: 'red.600', dark: 'red.300' },
+};
 
 export function scoreVerdict(value: number | string | null | undefined): string {
   const score = toScore(value);
-  if (score >= 9) return 'Semma! Mass code 🔥';
-  if (score >= 7) return 'Nalla irukku, konjam polish pannu';
-  if (score >= 4) return 'Paravaala, but work irukku';
-  return 'Machaan… full rework venum';
+  if (score >= 9) return 'Excellent';
+  if (score >= 7) return 'Good, needs some polish';
+  if (score >= 4) return 'Fair, needs work';
+  return 'Needs a major rework';
 }
 
 export const CATEGORY_LABELS: Record<keyof CategoryScores, string> = {
@@ -104,4 +113,13 @@ export function formatRelativeDate(iso: string, now: Date = new Date()): string 
 
 export function isQuotaExhausted(quota: Quota | undefined): boolean {
   return Boolean(quota && quota.used >= quota.limit);
+}
+
+/** Markdown task list of fixes (high → low), ready to paste into a GitHub issue. */
+export function fixesToMarkdown(improvements: Improvement[], repoName: string): string {
+  const lines = sortBySeverity(improvements).map((item) => {
+    const location = item.line_hint ? `\`${item.file}\` (${item.line_hint})` : `\`${item.file}\``;
+    return `- [ ] **${SEVERITY_LABELS[item.severity]}** ${location}: ${item.issue.replace(/[.\s]+$/, '')}. Fix: ${item.suggestion}`;
+  });
+  return [`## Fixes for ${repoName}`, '', ...lines, ''].join('\n');
 }

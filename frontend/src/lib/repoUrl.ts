@@ -27,12 +27,12 @@ export function isValidRepoUrl(url: string): boolean {
 /** Returns a friendly validation message, or null when the URL is valid. */
 export function validateRepoUrl(url: string): string | null {
   const value = url.trim();
-  if (!value) return 'Repo URL venum machaan — paste your GitHub link.';
+  if (!value) return 'Paste a GitHub repo URL.';
   if (!value.startsWith('https://github.com/')) {
     return 'Only https://github.com/ links work (public repos only).';
   }
   if (!isValidRepoUrl(value)) {
-    return 'Idhu valid repo link illa. Format: https://github.com/owner/repo';
+    return 'That is not a valid repo link. Use https://github.com/owner/repo';
   }
   return null;
 }

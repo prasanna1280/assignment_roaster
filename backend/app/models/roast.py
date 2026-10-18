@@ -9,6 +9,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 from app.models.base import TimestampMixin
+from app.models.submission import (
+    RoastLanguage,
+    RoastLevel,
+    roast_language_type,
+    roast_level_type,
+)
 
 if TYPE_CHECKING:
     from app.models.submission import Submission
@@ -36,6 +42,18 @@ class Roast(TimestampMixin, Base):
     roast_text: Mapped[str] = mapped_column(Text, nullable=False)
     strengths: Mapped[list[str]] = mapped_column(JSONType, nullable=False)
     improvements: Mapped[list[dict[str, Any]]] = mapped_column(JSONType, nullable=False)
+    roast_level: Mapped[RoastLevel] = mapped_column(
+        roast_level_type,
+        nullable=False,
+        default=RoastLevel.medium,
+        server_default=RoastLevel.medium.value,
+    )
+    roast_language: Mapped[RoastLanguage] = mapped_column(
+        roast_language_type,
+        nullable=False,
+        default=RoastLanguage.tanglish,
+        server_default=RoastLanguage.tanglish.value,
+    )
     model_used: Mapped[str] = mapped_column(String(100), nullable=False)
     input_tokens: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"

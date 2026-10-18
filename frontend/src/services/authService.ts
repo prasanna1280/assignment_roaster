@@ -10,13 +10,13 @@ import type {
 
 /** Friendly copy for backend auth `error_code` values. */
 export const AUTH_ERROR_MESSAGES: Record<string, string> = {
-  invalid_credentials: 'Email or password thappu. Konjam check pannitu try pannunga.',
-  account_disabled: 'Indha account disable aagiruku. Support-ah contact pannunga.',
-  email_taken: 'Indha email already register aagiruku. Login pannunga!',
-  rate_limited: 'Romba fast-ah try panreenga! Oru nimisham wait pannitu try pannunga.',
-  google_not_configured: 'Google login ippo available illa. Email use pannunga.',
-  oauth_state: 'Google login session expire aagiduchu. Once more try pannunga.',
-  oauth_failed: 'Google login fail aagiduchu. Konjam neram kazhichu try pannunga.',
+  invalid_credentials: 'Incorrect email or password.',
+  account_disabled: 'This account is disabled. Please contact support.',
+  email_taken: 'An account with this email already exists. Please log in.',
+  rate_limited: 'Too many attempts. Please wait a minute and try again.',
+  google_not_configured: 'Google sign-in is not available right now. Please use email.',
+  oauth_state: 'Your Google sign-in session expired. Please try again.',
+  oauth_failed: 'Google sign-in failed. Please try again later.',
 };
 
 export const authService = {

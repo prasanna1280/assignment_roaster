@@ -25,6 +25,37 @@ class SubmissionStatus(enum.StrEnum):
     failed = "failed"
 
 
+class RoastLevel(enum.StrEnum):
+    """How spicy the roast's tone is. Never affects the scores."""
+
+    lite = "lite"
+    medium = "medium"
+    spicy = "spicy"
+
+
+class RoastLanguage(enum.StrEnum):
+    """Language the roast is written in."""
+
+    english = "english"
+    tamil = "tamil"
+    tanglish = "tanglish"
+
+
+def _string_enum(enum_cls: type[enum.StrEnum], name: str) -> Enum:
+    """Build a non-native, validated string Enum column type."""
+    return Enum(
+        enum_cls,
+        name=name,
+        native_enum=False,
+        validate_strings=True,
+        length=20,
+        values_callable=lambda e: [m.value for m in e],
+    )
+
+
+roast_level_type = _string_enum(RoastLevel, "roast_level")
+roast_language_type = _string_enum(RoastLanguage, "roast_language")
+
 submission_status_type = Enum(
     SubmissionStatus,
     name="submission_status",
@@ -52,6 +83,18 @@ class Submission(TimestampMixin, Base):
     assignment_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
     assignment_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     primary_language: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    roast_level: Mapped[RoastLevel] = mapped_column(
+        roast_level_type,
+        nullable=False,
+        default=RoastLevel.medium,
+        server_default=RoastLevel.medium.value,
+    )
+    roast_language: Mapped[RoastLanguage] = mapped_column(
+        roast_language_type,
+        nullable=False,
+        default=RoastLanguage.tanglish,
+        server_default=RoastLanguage.tanglish.value,
+    )
     files_analyzed: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )

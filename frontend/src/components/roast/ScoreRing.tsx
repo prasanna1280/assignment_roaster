@@ -1,6 +1,6 @@
-import { Box, Text, VStack, useToken } from '@chakra-ui/react';
+import { Box, Text, VStack, useColorModeValue, useToken } from '@chakra-ui/react';
 import { motion } from 'framer-motion';
-import { formatScore, scoreColorToken, toScore } from './roastUtils';
+import { SEVERITY_PALETTE, formatScore, scoreColorToken, toScore } from './roastUtils';
 
 export interface ScoreRingProps {
   /** Score from 0 to 10. */
@@ -12,11 +12,15 @@ export interface ScoreRingProps {
   label?: string;
 }
 
-/** Animated circular score (0–10), coloured by how well the repo did. */
+/** Circular score (0–10), coloured by how well the repo did. */
 export function ScoreRing({ score, size = 160, thickness = 12, label = 'Overall score' }: ScoreRingProps) {
   const value = toScore(score);
   const colorToken = scoreColorToken(value);
-  const [strokeColor, trackColor] = useToken('colors', [colorToken, 'whiteAlpha.200']);
+  const palette = SEVERITY_PALETTE[colorToken];
+  const [strokeColor, trackColor] = useToken(
+    'colors',
+    useColorModeValue([palette.light, 'slate.100'], [palette.dark, 'slate.800']),
+  );
   const radius = (size - thickness) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - value / 10);
@@ -46,19 +50,20 @@ export function ScoreRing({ score, size = 160, thickness = 12, label = 'Overall 
           fill="none"
           stroke={strokeColor}
           strokeWidth={thickness}
-          strokeLinecap="round"
+          strokeLinecap="butt"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
           transform={`rotate(-90 ${center} ${center})`}
         />
       </svg>
       <VStack position="absolute" inset={0} justify="center" spacing={0}>
         <Text
           fontSize={size >= 120 ? '4xl' : 'xl'}
-          fontWeight="bold"
+          fontWeight="semibold"
           fontFamily="heading"
+          letterSpacing="-0.02em"
           lineHeight="1"
           color={colorToken}
         >

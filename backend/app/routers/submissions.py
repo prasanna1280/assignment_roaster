@@ -9,6 +9,7 @@ from app.models.user import User
 from app.rate_limit import limiter
 from app.schemas.submission import (
     QuotaResponse,
+    ReroastRequest,
     SubmissionCreate,
     SubmissionListResponse,
     SubmissionResponse,
@@ -86,11 +87,15 @@ async def reroast_submission(
     request: Request,
     submission_id: int,
     background_tasks: BackgroundTasks,
+    options: ReroastRequest | None = None,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> SubmissionResponse:
-    """Re-roast. 409 ``already_processing`` if in progress, 429 ``daily_limit_reached``."""
-    submission = submission_service.start_reroast(db, user, submission_id)
+    """Re-roast, optionally with a new level/language.
+
+    409 ``already_processing`` if in progress, 429 ``daily_limit_reached``.
+    """
+    submission = submission_service.start_reroast(db, user, submission_id, options)
     background_tasks.add_task(submission_service.process_submission, submission.id)
     return SubmissionResponse.model_validate(submission)
 

@@ -40,7 +40,7 @@ describe('OAuthCallbackPage', () => {
     window.history.replaceState(null, '', '/auth/callback');
     renderCallback();
 
-    expect(await screen.findByRole('heading', { name: /login aagala/i })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /sign-in failed/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /back to login/i })).toHaveAttribute('href', '/login');
     expect(tokenStorage.getAccessToken()).toBeNull();
   });

@@ -20,7 +20,7 @@ export const ERROR_TIPS: Record<SubmissionErrorCode, ErrorTip> = {
     retryable: false,
   },
   github_rate_limited: {
-    tip: 'GitHub is rate limiting us. Try again in a few minutes, machaan.',
+    tip: 'GitHub is rate limiting us. Try again in a few minutes.',
     retryable: true,
   },
   repo_too_large: {
@@ -28,7 +28,7 @@ export const ERROR_TIPS: Record<SubmissionErrorCode, ErrorTip> = {
     retryable: false,
   },
   repo_empty: {
-    tip: 'Push some code to the repo first — empty repo-va roast panna mudiyadhu!',
+    tip: 'Push some code to the repo first. An empty repo has nothing to review.',
     retryable: true,
   },
   ai_invalid_output: {

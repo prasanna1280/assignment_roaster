@@ -1,6 +1,11 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { submissionService } from '../services/submissionService';
-import type { Submission, SubmissionCreate, SubmissionStatus } from '../types';
+import type { ReroastOptions, Submission, SubmissionCreate, SubmissionStatus } from '../types';
+
+export interface ReroastVariables {
+  id: number;
+  options?: ReroastOptions;
+}
 
 export const submissionKeys = {
   all: ['submissions'] as const,
@@ -71,11 +76,11 @@ export function useCreateSubmission() {
 export function useReroast() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => submissionService.reroast(id),
+    mutationFn: ({ id, options }: ReroastVariables) => submissionService.reroast(id, options),
     onSuccess: (submission) => {
       queryClient.setQueryData(submissionKeys.detail(submission.id), submission);
     },
-    onSettled: (_data, _error, id) => {
+    onSettled: (_data, _error, { id }) => {
       void queryClient.invalidateQueries({ queryKey: submissionKeys.detail(id) });
       void queryClient.invalidateQueries({ queryKey: submissionKeys.lists() });
       void queryClient.invalidateQueries({ queryKey: submissionKeys.quota() });

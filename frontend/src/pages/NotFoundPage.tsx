@@ -1,6 +1,6 @@
 import { Heading, Stack, Text } from '@chakra-ui/react';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GradientButton } from '../components/ui/GradientButton';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 
 export function NotFoundPage() {
   return (
@@ -10,12 +10,12 @@ export function NotFoundPage() {
           404
         </Heading>
         <Heading as="h2" size="lg">
-          Indha page-ah kaanom!
+          Page not found
         </Heading>
         <Text color="text.muted">The page you are looking for does not exist (or got roasted away).</Text>
-        <GradientButton to="/">
+        <PrimaryButton to="/">
           Go home
-        </GradientButton>
+        </PrimaryButton>
       </Stack>
     </PageWrapper>
   );

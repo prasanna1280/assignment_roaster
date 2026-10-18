@@ -4,6 +4,7 @@ import { ScoreRing } from '../../components/roast/ScoreRing';
 import { CategoryBars } from '../../components/roast/CategoryBars';
 import { FixList } from '../../components/roast/FixList';
 import { RoastMarkdown } from '../../components/roast/RoastMarkdown';
+import { InlineCodeText } from '../../components/roast/InlineCodeText';
 import { renderWithProviders } from '../testUtils';
 import { mockRoast } from './fixtures';
 
@@ -46,7 +47,7 @@ describe('FixList', () => {
 
   it('shows an empty message when there is nothing to fix', () => {
     renderWithProviders(<FixList improvements={[]} />, { withAuth: false });
-    expect(screen.getByText(/onnum illa/i)).toBeInTheDocument();
+    expect(screen.getByText(/no fixes needed/i)).toBeInTheDocument();
   });
 });
 
@@ -73,5 +74,14 @@ describe('RoastMarkdown', () => {
     const good = screen.getByRole('link', { name: 'good' });
     expect(good).toHaveAttribute('href', 'https://example.com');
     expect(good).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+});
+
+describe('InlineCodeText', () => {
+  it('renders backtick spans as code and leaves HTML as plain text', () => {
+    renderWithProviders(<InlineCodeText text="Add `forkit.gif` or remove <img src=x onerror=alert(1)>" />);
+    expect(screen.getByText('forkit.gif').tagName).toBe('CODE');
+    expect(screen.getByText(/<img src=x onerror=alert\(1\)>/)).toBeInTheDocument();
+    expect(document.querySelector('img')).toBeNull();
   });
 });

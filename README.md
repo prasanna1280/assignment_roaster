@@ -1,16 +1,22 @@
-# 🔥 Assignment Roaster
+# Assignment Roaster
 
-> Paste a public GitHub repo, get an honest code review in Tanglish: a score, a roast, and fixes ranked by severity.
+> Paste a public GitHub repo, get an honest, funny code review in English, Tamil or Tanglish: a score, a roast, and fixes ranked by severity.
 
 **Try it live: [roaster.prasanna.digital](https://roaster.prasanna.digital)** (sign in with Google)
 
-![A roast result: score ring at 7/10 and the headline "Architecture semma weight ah irukku, aana one f-string SyntaxError vandha whole RAG bus puncture machaan!"](docs/roast-result.png)
+![A Spicy Tanglish roast of octocat/Spoon-Knife: score ring at 3.2/10 and the headline "Static page simple dhaan, aana missing image, empty alt, outdated HTML nu browser-ku mini heart attack machaan!"](docs/roast-result.png)
 
-Assignment Roaster is an AI code reviewer for students. It reads your assignment repo and replies like a friendly senior anna/akka would:
+Assignment Roaster is an AI code reviewer for students. It reads your assignment repo and replies like a friendly senior would, in the tone and language you pick:
+
+| Roast level | | Language | |
+|---|---|---|---|
+| **Lite** | Gentle mentor, light humour | **English** | Plain, friendly English |
+| **Medium** | Classic roast, playful and direct | **Tamil** | Tamil script, technical terms in English |
+| **Spicy** | Loud jokes about the code, never personal | **Tanglish** | Tamil in Latin letters, mixed with English |
 
 > *"Machaan, oru function la 300 lines ah? Idhu function illa, full novel da! Konjam split pannu."*
 
-It roasts the **code**, never the person, and every joke comes with a concrete fix.
+It roasts the **code**, never the person, and every joke comes with a concrete fix. The level changes the tone only: every roast is scored on the same rubric.
 
 ---
 
@@ -20,17 +26,20 @@ It roasts the **code**, never the person, and every joke comes with a concrete f
 |---|---|
 | **Overall score** | 0–10, a holistic judgement (not a plain average) |
 | **Category scores** | Code quality, Structure, Readability, Documentation, Testing, Best practices |
-| **Headline** | One Tanglish punchline about your code |
-| **Roast** | 150–400 words of Tanglish review in Markdown |
+| **Headline** | One punchline about your code, in your chosen language |
+| **Roast** | 150–400 words of review in Markdown |
 | **Strengths** | What you did well, so you stay motivated |
 | **Fixes** | 3–15 issues, each tied to a real file path, with a suggestion and severity |
 
-![The roast text: a Tanglish review pointing at specific files such as app/rag/chain.py and .env.example](docs/roast-text.png)
+![A Medium English roast: the review text and file-level fixes such as index.html and styles.css, grouped by priority](docs/roast-text.png)
 
 Other features:
 
 - **Live status:** the result page moves through `queued → fetching → analyzing → completed` without a refresh.
-- **Re-roast:** push improvements and roast the same repo again.
+- **Re-roast:** push improvements and roast the same repo again, optionally with a different level or language.
+- **Download PDF:** a print-ready report (no navigation or buttons) for sharing with a mentor or teacher.
+- **Copy as checklist:** fixes as a Markdown task list, ready to paste into a GitHub issue.
+- **Default roast mode:** set your usual level and language once in Settings.
 - **Daily limit:** 5 roasts per user per day by default, so API costs stay predictable.
 - **Admin panel:** users, all submissions, failure rate, roasts per day and token usage.
 - **Sign in:** email/password or Google.
@@ -186,7 +195,7 @@ All endpoints live under `/api/v1`. Full interactive docs are at `/docs`.
 | Area | Endpoints |
 |---|---|
 | Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `GET/PUT /auth/me`, `GET /auth/google` |
-| Submissions | `POST /submissions` (202, roasts in the background), `GET /submissions`, `GET /submissions/{id}`, `POST /submissions/{id}/reroast`, `DELETE /submissions/{id}`, `GET /submissions/quota` |
+| Submissions | `POST /submissions` (202, roasts in the background; optional `roast_level`: `lite`/`medium`/`spicy` and `roast_language`: `english`/`tamil`/`tanglish`), `GET /submissions`, `GET /submissions/{id}`, `POST /submissions/{id}/reroast` (optional body to switch level/language), `DELETE /submissions/{id}`, `GET /submissions/quota` |
 | Admin | `GET /admin/users`, `PUT /admin/users/{id}`, `GET /admin/submissions`, `GET /admin/stats` (admins only) |
 
 Users only ever see their own submissions; anything else returns 404.
@@ -209,7 +218,7 @@ POST /submissions ──► 202 Accepted (status: queued)
         │
         ▼
   completed  Roast saved with scores, model and token usage
-             (or failed, with a friendly Tanglish error message)
+             (or failed, with a friendly error message in the roast's language)
 ```
 
 The frontend polls every 2 seconds until the submission completes or fails.

@@ -10,7 +10,7 @@ import {
   Input,
   Stack,
 } from '@chakra-ui/react';
-import { GradientButton } from '../ui/GradientButton';
+import { PrimaryButton } from '../ui/PrimaryButton';
 import { PasswordInput } from './PasswordInput';
 import { validateEmail } from './validation';
 import { getRedirectPath } from './redirect';
@@ -37,7 +37,7 @@ export function LoginForm() {
     setServerError(null);
     const nextErrors: LoginErrors = {
       email: validateEmail(email),
-      password: password ? undefined : 'Password venum — please enter your password.',
+      password: password ? undefined : 'Please enter your password.',
     };
     setErrors(nextErrors);
     if (nextErrors.email || nextErrors.password) return;
@@ -67,7 +67,7 @@ export function LoginForm() {
             id="login-email"
             type="email"
             autoComplete="email"
-            placeholder="nee@example.com"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -83,9 +83,9 @@ export function LoginForm() {
           />
           <FormErrorMessage>{errors.password}</FormErrorMessage>
         </FormControl>
-        <GradientButton type="submit" w="full" isLoading={isSubmitting} loadingText="Logging in...">
-          Login pannunga
-        </GradientButton>
+        <PrimaryButton type="submit" w="full" isLoading={isSubmitting} loadingText="Logging in...">
+          Log in
+        </PrimaryButton>
       </Stack>
     </form>
   );

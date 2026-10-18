@@ -16,6 +16,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, PlainSerializer, field_validator
 
+from app.models.submission import RoastLanguage, RoastLevel
+
 Severity = Literal["low", "medium", "high"]
 
 
@@ -145,5 +147,7 @@ class RoastResponse(BaseModel):
     roast_text: str
     strengths: list[str]
     improvements: list[Improvement]
+    roast_level: RoastLevel = RoastLevel.medium
+    roast_language: RoastLanguage = RoastLanguage.tanglish
     model_used: str
     created_at: UTCDateTime

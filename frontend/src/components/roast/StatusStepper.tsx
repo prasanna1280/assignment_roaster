@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Circle, Flex, HStack, Icon, Stack, Text, VisuallyHidden } from '@chakra-ui/react';
+import { Box, Circle, Flex, HStack, Icon, Spinner, Stack, Text, VisuallyHidden } from '@chakra-ui/react';
 import { AnimatePresence } from 'framer-motion';
 import { FiCheck } from 'react-icons/fi';
 import type { SubmissionStatus } from '../../types';
@@ -12,20 +12,20 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { key: 'queued', label: 'Queued', description: 'Line la nikkudhu' },
-  { key: 'fetching', label: 'Fetching', description: 'Repo-va download panrom' },
-  { key: 'analyzing', label: 'Analyzing', description: 'AI roast cook aagudhu' },
-  { key: 'done', label: 'Done', description: 'Roast ready!' },
+  { key: 'queued', label: 'Queued', description: 'Waiting for a worker' },
+  { key: 'fetching', label: 'Fetching', description: 'Downloading the repo' },
+  { key: 'analyzing', label: 'Analyzing', description: 'Reviewing the code' },
+  { key: 'done', label: 'Done', description: 'Report ready' },
 ];
 
 const ROAST_TAGLINES: string[] = [
-  'Un code-ah padichitu irukken…',
-  'Roast ready aagudhu, wait pannu machaan 🔥',
-  'console.log ellam count pannittu irukken 👀',
-  'Variable names paathu konjam shock aayiten…',
-  'README-la enna irukku nu paakren…',
-  'Tests irukka illaya? Theditu irukken 🔍',
-  'Masala add panrom, konjam spicy-ah varum 🌶️',
+  'Reading through your code…',
+  'Checking project structure and naming…',
+  'Counting the console.log statements…',
+  'Looking for tests and how much they cover…',
+  'Reading the README and setup steps…',
+  'Scanning for hardcoded secrets…',
+  'Writing up the fixes, most important first…',
 ];
 
 const TAGLINE_INTERVAL_MS = 3000;
@@ -47,7 +47,7 @@ export interface StatusStepperProps {
   status: SubmissionStatus;
 }
 
-/** Animated queued → fetching → analyzing → done progress with rotating Tanglish taglines. */
+/** Queued → fetching → analyzing → done progress with rotating status lines. */
 export function StatusStepper({ status }: StatusStepperProps) {
   const current = stepIndex(status);
   const [taglineIndex, setTaglineIndex] = useState(0);
@@ -66,10 +66,10 @@ export function StatusStepper({ status }: StatusStepperProps) {
       </VisuallyHidden>
 
       <Flex as="ol" w="full" maxW="2xl" justify="space-between" position="relative" listStyleType="none">
-        <Box position="absolute" top="20px" left="12.5%" right="12.5%" h="2px" bg="whiteAlpha.200" aria-hidden="true">
+        <Box position="absolute" top="20px" left="12.5%" right="12.5%" h="2px" bg="border.subtle" aria-hidden="true">
           <MotionBox
             h="full"
-            bgGradient="linear(to-r, brand.400, ember.500)"
+            bg="accent.solid"
             initial={{ width: '0%' }}
             animate={{ width: `${(current / (STEPS.length - 1)) * 100}%` }}
             transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -88,22 +88,16 @@ export function StatusStepper({ status }: StatusStepperProps) {
               zIndex={1}
               aria-current={isActive ? 'step' : undefined}
             >
-              <MotionBox
-                animate={isActive ? { scale: [1, 1.12, 1] } : { scale: 1 }}
-                transition={isActive ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+              <Circle
+                size="40px"
+                bg={isDone ? 'accent.solid' : 'bg.surface'}
+                borderWidth="2px"
+                borderColor={isDone || isActive ? 'accent.solid' : 'border.strong'}
+                color={isDone ? 'bg.surface' : isActive ? 'accent.fg' : 'text.muted'}
+                fontWeight="semibold"
               >
-                <Circle
-                  size="40px"
-                  bg={isDone ? 'brand.500' : isActive ? 'bg.surface' : 'bg.canvas'}
-                  borderWidth="2px"
-                  borderColor={isDone || isActive ? 'brand.400' : 'whiteAlpha.300'}
-                  color={isDone ? 'white' : isActive ? 'accent.fg' : 'text.muted'}
-                  boxShadow={isActive ? 'glow' : 'none'}
-                  fontWeight="bold"
-                >
-                  {isDone ? <Icon as={FiCheck} aria-hidden="true" /> : i + 1}
-                </Circle>
-              </MotionBox>
+                {isDone ? <Icon as={FiCheck} aria-hidden="true" /> : isActive ? <Spinner size="sm" /> : i + 1}
+              </Circle>
               <Text fontWeight="semibold" fontSize="sm" color={isDone || isActive ? 'text.primary' : 'text.muted'}>
                 {step.label}
               </Text>
@@ -124,7 +118,7 @@ export function StatusStepper({ status }: StatusStepperProps) {
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3 }}
           >
-            <Text fontSize={{ base: 'md', md: 'lg' }} color="accent.fg" fontWeight="medium" textAlign="center">
+            <Text fontSize="md" color="text.muted" textAlign="center">
               {ROAST_TAGLINES[taglineIndex]}
             </Text>
           </MotionBox>

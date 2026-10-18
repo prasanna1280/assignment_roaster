@@ -26,9 +26,9 @@ export function CategoryBars({ scores }: CategoryBarsProps) {
               </Text>
             </Flex>
             <Box
-              h={2.5}
-              bg="whiteAlpha.200"
-              borderRadius="full"
+              h={2}
+              bg="bg.subtle"
+              borderRadius="sm"
               overflow="hidden"
               role="meter"
               aria-label={label}
@@ -38,7 +38,7 @@ export function CategoryBars({ scores }: CategoryBarsProps) {
             >
               <MotionBox
                 h="full"
-                borderRadius="full"
+                borderRadius="sm"
                 bg={scoreColorToken(value)}
                 initial={{ width: '0%' }}
                 animate={{ width: `${value * 10}%` }}

@@ -117,7 +117,7 @@ export function getErrorMessage(err: unknown): string {
         }
       }
     }
-    if (!err.response) return 'Server-ah reach panna mudiyala. Check your connection and try again.';
+    if (!err.response) return 'Could not reach the server. Check your connection and try again.';
     return `Request failed (${err.response.status}).`;
   }
   if (err instanceof Error) return err.message;

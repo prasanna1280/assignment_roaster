@@ -17,19 +17,19 @@ export function LoginPage() {
     errorParam !== null
       ? OAUTH_ERRORS.has(errorParam)
         ? AUTH_ERROR_MESSAGES[errorParam]
-        : 'Login-la edho problem aagiduchu. Once more try pannunga.'
+        : 'Something went wrong while logging in. Please try again.'
       : null;
 
   return (
     <PageWrapper maxW="container.sm">
       <AuthCard
-        title="Vaanga! Login pannunga"
-        subtitle="Welcome back — un code roast-ku ready-ah?"
+        title="Welcome back"
+        subtitle="Log in to review your repos."
         footer={
           <Text>
-            Account illaya?{' '}
+            Don&apos;t have an account?{' '}
             <Link as={RouterLink} to="/register" state={location.state} color="accent.fg" fontWeight="semibold">
-              Sign up pannunga
+              Sign up
             </Link>
           </Text>
         }
@@ -44,7 +44,7 @@ export function LoginPage() {
           <LoginForm />
           <Flex justify="flex-end">
             <Link as={RouterLink} to="/forgot-password" fontSize="sm" color="accent.fg">
-              Password marandhuteengala?
+              Forgot password?
             </Link>
           </Flex>
           <OrDivider />

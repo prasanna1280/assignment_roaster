@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.models.submission import SubmissionStatus
+from app.models.submission import RoastLanguage, RoastLevel, SubmissionStatus
 from app.schemas.roast import RoastResponse, UTCDateTime
 
 
@@ -21,6 +21,8 @@ class SubmissionCreate(BaseModel):
     branch: str | None = Field(default=None, max_length=255)
     assignment_title: str | None = Field(default=None, max_length=200)
     assignment_description: str | None = Field(default=None, max_length=5000)
+    roast_level: RoastLevel = RoastLevel.medium
+    roast_language: RoastLanguage = RoastLanguage.tanglish
 
     @field_validator("repo_url", mode="before")
     @classmethod
@@ -31,6 +33,13 @@ class SubmissionCreate(BaseModel):
     @classmethod
     def _blank_optional(cls, value: object) -> object:
         return _blank_to_none(value)
+
+
+class ReroastRequest(BaseModel):
+    """Optional body of ``POST /submissions/{id}/reroast``; omitted fields keep the last choice."""
+
+    roast_level: RoastLevel | None = None
+    roast_language: RoastLanguage | None = None
 
 
 class SubmissionResponse(BaseModel):
@@ -47,6 +56,8 @@ class SubmissionResponse(BaseModel):
     assignment_title: str | None
     assignment_description: str | None
     primary_language: str | None
+    roast_level: RoastLevel
+    roast_language: RoastLanguage
     files_analyzed: int
     status: SubmissionStatus
     error_code: str | None

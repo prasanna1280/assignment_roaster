@@ -9,18 +9,19 @@ describe('HomePage', () => {
   it('renders the hero and CTA', () => {
     renderWithProviders(<HomePage />);
     expect(
-      screen.getByRole('heading', { level: 1, name: /un code-ah roast panna ready ah\?/i }),
+      screen.getByRole('heading', { level: 1, name: /honest code reviews that students actually read/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /roast my repo/i })).toHaveAttribute('href', '/roast/new');
+    expect(screen.getByRole('meter', { name: /sample overall score/i })).toBeInTheDocument();
   });
 });
 
 describe('App routing', () => {
   it('renders navbar and home at /', () => {
     renderWithProviders(<App />, { route: '/' });
-    expect(screen.getByText(/assignment roaster/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /assignment roaster home/i })).toBeInTheDocument();
     // Logged out: auth-aware navbar shows Login / Sign up instead of app links.
-    expect(screen.getAllByRole('link', { name: 'Login', hidden: true }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: 'Log in', hidden: true }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('link', { name: 'Dashboard', hidden: true })).not.toBeInTheDocument();
   });
 

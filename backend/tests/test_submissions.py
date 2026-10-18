@@ -16,7 +16,7 @@ from app.config import settings
 from app.main import app as fastapi_app
 from app.models.roast import Roast
 from app.models.roast_attempt import RoastAttempt
-from app.models.submission import Submission, SubmissionStatus
+from app.models.submission import RoastLanguage, Submission, SubmissionStatus
 from app.models.user import User
 from app.services import github_service, roast_service, submission_service
 from app.services.github_service import GitHubError, RepoMetadata
@@ -528,3 +528,108 @@ def test_reroast_after_failure_respects_daily_limit(
     response = auth_client.post(f"{URL}/{failed.id}/reroast")
     assert response.status_code == 429
     assert response.json()["error_code"] == "daily_limit_reached"
+
+
+# --- Roast level and language ------------------------------------------------------
+def test_create_defaults_to_medium_tanglish(
+    auth_client: TestClient,
+    fake_github: Callable[..., None],
+    fake_openai: Callable[[list[Any]], FakeOpenAIClient],
+) -> None:
+    fake_github()
+    fake_openai([make_completion(valid_roast_dict())])
+    response = auth_client.post(URL, json={"repo_url": "https://github.com/octo/hello"})
+    assert response.status_code == 202
+    body = response.json()
+    assert (body["roast_level"], body["roast_language"]) == ("medium", "tanglish")
+
+
+def test_create_with_level_and_language_is_used_and_recorded(
+    auth_client: TestClient,
+    fake_github: Callable[..., None],
+    fake_openai: Callable[[list[Any]], FakeOpenAIClient],
+) -> None:
+    fake_github()
+    fake = fake_openai([make_completion(valid_roast_dict())])
+    response = auth_client.post(
+        URL,
+        json={
+            "repo_url": "https://github.com/octo/hello",
+            "roast_level": "spicy",
+            "roast_language": "english",
+        },
+    )
+    assert response.status_code == 202
+
+    data = auth_client.get(f"{URL}/{response.json()['id']}").json()
+    assert data["status"] == "completed"
+    assert (data["roast_level"], data["roast_language"]) == ("spicy", "english")
+    roast = data["latest_roast"]
+    assert (roast["roast_level"], roast["roast_language"]) == ("spicy", "english")
+    assert "Roast level: SPICY" in fake.completions.calls[0]["messages"][0]["content"]
+
+
+@pytest.mark.parametrize(
+    "field,value", [("roast_level", "extra_hot"), ("roast_language", "french")]
+)
+def test_create_rejects_unknown_mode(auth_client: TestClient, field: str, value: str) -> None:
+    response = auth_client.post(
+        URL, json={"repo_url": "https://github.com/octo/hello", field: value}
+    )
+    assert response.status_code == 422
+
+
+def test_reroast_can_switch_mode_and_keeps_history(
+    auth_client: TestClient,
+    db: Session,
+    user: User,
+    fake_github: Callable[..., None],
+    fake_openai: Callable[[list[Any]], FakeOpenAIClient],
+) -> None:
+    submission = _add_submission(
+        db, user, created_at=datetime.now(UTC) - timedelta(days=2), with_roast=True
+    )
+    fake_github()
+    fake = fake_openai([make_completion(valid_roast_dict())])
+
+    response = auth_client.post(
+        f"{URL}/{submission.id}/reroast", json={"roast_language": "tamil"}
+    )
+    assert response.status_code == 202
+    assert (response.json()["roast_level"], response.json()["roast_language"]) == (
+        "medium",
+        "tamil",
+    )
+    roast = auth_client.get(f"{URL}/{submission.id}").json()["latest_roast"]
+    assert roast["roast_language"] == "tamil"
+    assert "Tamil script" in fake.completions.calls[0]["messages"][0]["content"]
+    # The first roast keeps the mode it was generated with.
+    languages = sorted(r.roast_language.value for r in db.scalars(select(Roast)).all())
+    assert languages == ["tamil", "tanglish"]
+
+
+@pytest.mark.parametrize(
+    ("language", "snippet"),
+    [("english", "make it public"), ("tamil", "\u0b87\u0ba8\u0bcd\u0ba4"), ("tanglish", "machaan")],
+)
+def test_failure_message_follows_roast_language(
+    auth_client: TestClient,
+    fake_github: Callable[..., None],
+    fake_openai: Callable[[list[Any]], FakeOpenAIClient],
+    language: str,
+    snippet: str,
+) -> None:
+    fake_github(error=GitHubError("repo_not_found_or_private", "404"))
+    fake_openai([])
+    response = auth_client.post(
+        URL, json={"repo_url": "https://github.com/octo/hello", "roast_language": language}
+    )
+    data = auth_client.get(f"{URL}/{response.json()['id']}").json()
+    assert data["status"] == "failed"
+    assert snippet in data["error_message"].lower()
+
+
+def test_every_language_covers_every_error_code() -> None:
+    codes = set(submission_service.FRIENDLY_ERRORS[RoastLanguage.tanglish])
+    for language in RoastLanguage:
+        assert set(submission_service.FRIENDLY_ERRORS[language]) == codes, language

@@ -19,6 +19,8 @@ export const mockRoast: Roast = {
     { file: 'app/main.py', line_hint: 'L10-L40', issue: 'Hardcoded secret key', suggestion: 'Use env vars', severity: 'high' },
     { file: 'app/utils.py', line_hint: 'L5', issue: 'Huge function', suggestion: 'Split it up', severity: 'medium' },
   ],
+  roast_level: 'medium',
+  roast_language: 'tanglish',
   model_used: 'test-model',
   created_at: '2026-10-10T10:00:00Z',
 };
@@ -34,6 +36,8 @@ export function makeSubmission(overrides: Partial<Submission> = {}): Submission 
     assignment_title: 'Week 3 Todo API',
     assignment_description: null,
     primary_language: 'Python',
+    roast_level: 'medium',
+    roast_language: 'tanglish',
     files_analyzed: 12,
     status: 'completed',
     error_code: null,

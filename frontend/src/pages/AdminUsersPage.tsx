@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { FiSearch } from 'react-icons/fi';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GlassCard } from '../components/ui/GlassCard';
+import { SectionCard } from '../components/ui/SectionCard';
 import { AdminHeader } from '../components/admin/AdminHeader';
 import { PaginationNav } from '../components/admin/PaginationNav';
 import { QueryErrorCard } from '../components/admin/QueryErrorCard';
@@ -97,15 +97,15 @@ export function AdminUsersPage() {
         </InputGroup>
 
         {query.isLoading ? (
-          <Skeleton h="320px" borderRadius="2xl" aria-busy="true" aria-label="Loading users" />
+          <Skeleton h="320px" borderRadius="lg" aria-busy="true" aria-label="Loading users" />
         ) : query.isError ? (
           <QueryErrorCard error={query.error} onRetry={() => void query.refetch()} />
         ) : items.length === 0 ? (
-          <GlassCard disableHover textAlign="center" py={10}>
+          <SectionCard textAlign="center" py={10}>
             <Text color="text.muted">No users match &ldquo;{search}&rdquo;.</Text>
-          </GlassCard>
+          </SectionCard>
         ) : (
-          <GlassCard disableHover p={0} overflow="hidden">
+          <SectionCard p={0} overflow="hidden">
             <TableContainer>
               <Table size="sm">
                 <Thead>
@@ -164,7 +164,7 @@ export function AdminUsersPage() {
                 </Tbody>
               </Table>
             </TableContainer>
-          </GlassCard>
+          </SectionCard>
         )}
 
         <PaginationNav page={page} totalPages={totalPages} isFetching={query.isFetching} onChange={goToPage} />

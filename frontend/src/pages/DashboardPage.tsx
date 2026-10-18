@@ -3,6 +3,7 @@ import {
   Button,
   Flex,
   Heading,
+  Icon,
   Link,
   SimpleGrid,
   Skeleton,
@@ -13,10 +14,10 @@ import {
   StatNumber,
   Text,
 } from '@chakra-ui/react';
-import { FiRefreshCw } from 'react-icons/fi';
+import { FiInbox, FiPlus, FiRefreshCw } from 'react-icons/fi';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GlassCard } from '../components/ui/GlassCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { SectionCard } from '../components/ui/SectionCard';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { AnimatedList } from '../components/ui/AnimatedList';
 import { SubmissionCard } from '../components/roast/SubmissionCard';
 import { QuotaBadge } from '../components/roast/QuotaBadge';
@@ -24,7 +25,6 @@ import { formatScore, scoreColorToken, toScore } from '../components/roast/roast
 import { useQuota, useSubmissionsList } from '../hooks/useSubmissions';
 import { useAuth } from '../hooks/useAuth';
 import { getErrorMessage } from '../services/api';
-import { brandGradient } from '../theme';
 import type { Submission } from '../types';
 
 /** Fetch a batch large enough for a meaningful client-side average. */
@@ -62,29 +62,29 @@ export function DashboardPage() {
   return (
     <PageWrapper maxW="container.xl">
       <Stack spacing={10}>
-        <GlassCard disableHover p={{ base: 6, md: 10 }}>
+        <SectionCard p={{ base: 6, md: 10 }}>
           <Flex direction={{ base: 'column', md: 'row' }} justify="space-between" align={{ md: 'center' }} gap={6}>
             <Stack spacing={3}>
               <Text color="text.muted">
                 {greeting()}
-                {firstName ? `, ${firstName}` : ''} 👋 Vanakkam!
+                {firstName ? `, ${firstName}` : ''}
               </Text>
-              <Heading as="h1" size="2xl" bgGradient={brandGradient} bgClip="text" lineHeight="1.15">
-                Ready for today&apos;s roast?
+              <Heading as="h1" size="xl" lineHeight="1.2">
+                Ready for today&apos;s review?
               </Heading>
               <Text color="text.muted" maxW="lg">
-                Paste a public GitHub repo, get a score, a spicy Tanglish roast and fixes ranked by severity.
+                Paste a public GitHub repo to get a score, an honest roast and fixes ranked by severity.
               </Text>
               <QuotaBadge quota={quota} isLoading={quotaQuery.isLoading} />
             </Stack>
-            <GradientButton to="/roast/new" size="lg">
-              🔥 Roast a repo
-            </GradientButton>
+            <PrimaryButton to="/roast/new" size="lg" leftIcon={<FiPlus aria-hidden="true" />}>
+              New roast
+            </PrimaryButton>
           </Flex>
-        </GlassCard>
+        </SectionCard>
 
         <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={6}>
-          <GlassCard>
+          <SectionCard>
             <Stat>
               <StatLabel color="text.muted">Total roasts</StatLabel>
               <Skeleton isLoaded={!listQuery.isLoading}>
@@ -92,8 +92,8 @@ export function DashboardPage() {
               </Skeleton>
               <StatHelpText>{completedCount} completed recently</StatHelpText>
             </Stat>
-          </GlassCard>
-          <GlassCard>
+          </SectionCard>
+          <SectionCard>
             <Stat>
               <StatLabel color="text.muted">Average score</StatLabel>
               <Skeleton isLoaded={!listQuery.isLoading}>
@@ -102,11 +102,11 @@ export function DashboardPage() {
                 </StatNumber>
               </Skeleton>
               <StatHelpText>
-                {avg === null ? 'No completed roasts yet' : `Across your last ${completedCount} roasts`}
+                {avg === null ? 'No completed roasts yet' : `Across your last ${completedCount} roast${completedCount === 1 ? '' : 's'}`}
               </StatHelpText>
             </Stat>
-          </GlassCard>
-          <GlassCard>
+          </SectionCard>
+          <SectionCard>
             <Stat>
               <StatLabel color="text.muted">Roasts left today</StatLabel>
               <Skeleton isLoaded={!quotaQuery.isLoading}>
@@ -114,7 +114,7 @@ export function DashboardPage() {
               </Skeleton>
               <StatHelpText>Resets daily</StatHelpText>
             </Stat>
-          </GlassCard>
+          </SectionCard>
         </SimpleGrid>
 
         <Stack spacing={5}>
@@ -132,28 +132,26 @@ export function DashboardPage() {
           {listQuery.isLoading ? (
             <Stack spacing={4} aria-busy="true" aria-label="Loading recent roasts">
               {[0, 1, 2].map((i) => (
-                <Skeleton key={i} h="96px" borderRadius="2xl" />
+                <Skeleton key={i} h="96px" borderRadius="lg" />
               ))}
             </Stack>
           ) : listQuery.isError ? (
-            <GlassCard disableHover role="alert">
+            <SectionCard role="alert">
               <Stack spacing={4} align="flex-start">
                 <Text>{getErrorMessage(listQuery.error)}</Text>
                 <Button leftIcon={<FiRefreshCw aria-hidden="true" />} onClick={() => void listQuery.refetch()}>
                   Try again
                 </Button>
               </Stack>
-            </GlassCard>
+            </SectionCard>
           ) : recent.length === 0 ? (
-            <GlassCard disableHover textAlign="center" py={12}>
+            <SectionCard textAlign="center" py={12}>
               <Stack spacing={4} align="center">
-                <Text fontSize="4xl" aria-hidden="true">
-                  🌶️
-                </Text>
-                <Text color="text.muted">Innum roast pannala. First repo submit pannu, machaan!</Text>
-                <GradientButton to="/roast/new">Roast my first repo</GradientButton>
+                <Icon as={FiInbox} boxSize={8} color="text.muted" aria-hidden="true" />
+                <Text color="text.muted">No roasts yet. Submit your first repo to see your report here.</Text>
+                <PrimaryButton to="/roast/new">Roast my first repo</PrimaryButton>
               </Stack>
-            </GlassCard>
+            </SectionCard>
           ) : (
             <AnimatedList spacing={4}>
               {recent.map((submission) => (

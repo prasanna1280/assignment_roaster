@@ -17,15 +17,17 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { PageWrapper } from '../components/ui/PageWrapper';
-import { GlassCard } from '../components/ui/GlassCard';
-import { GradientButton } from '../components/ui/GradientButton';
+import { SectionCard } from '../components/ui/SectionCard';
+import { PrimaryButton } from '../components/ui/PrimaryButton';
 import { RepoUrlInput } from '../components/roast/RepoUrlInput';
 import { QuotaBadge } from '../components/roast/QuotaBadge';
 import { isQuotaExhausted } from '../components/roast/roastUtils';
 import { useCreateSubmission, useQuota } from '../hooks/useSubmissions';
+import { RoastModePicker } from '../components/roast/RoastModePicker';
 import { parseRepoUrl, validateRepoUrl } from '../lib/repoUrl';
+import { loadRoastModePreference, saveRoastModePreference } from '../lib/roastModes';
 import { getErrorCode, getErrorMessage } from '../services/api';
-import type { SubmissionCreate } from '../types';
+import type { RoastLanguage, RoastLevel, SubmissionCreate } from '../types';
 
 const TITLE_MAX = 200;
 const DESCRIPTION_MAX = 5000;
@@ -44,6 +46,8 @@ export function NewRoastPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [level, setLevel] = useState<RoastLevel>(() => loadRoastModePreference().level);
+  const [language, setLanguage] = useState<RoastLanguage>(() => loadRoastModePreference().language);
 
   const clientRepoError = validateRepoUrl(repoUrl);
   const repoError = serverRepoError ?? (repoTouched ? clientRepoError : null);
@@ -57,7 +61,8 @@ export function NewRoastPage() {
     setFormError(null);
     if (clientRepoError || quotaExhausted) return;
 
-    const payload: SubmissionCreate = { repo_url: repoUrl.trim() };
+    const payload: SubmissionCreate = { repo_url: repoUrl.trim(), roast_level: level, roast_language: language };
+    saveRoastModePreference({ level, language });
     const trimmedBranch = branch.trim();
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
@@ -79,9 +84,9 @@ export function NewRoastPage() {
         void quotaQuery.refetch();
       }
       const displayMessage =
-        code === 'rate_limited' ? `${message} Too many requests — konjam wait pannitu try pannu.` : message;
+        code === 'rate_limited' ? `${message} Too many requests. Please wait a moment and try again.` : message;
       setFormError(displayMessage);
-      toast({ status: 'error', title: 'Roast start aagala', description: message, isClosable: true });
+      toast({ status: 'error', title: 'Could not start the roast', description: message, isClosable: true });
     }
   };
 
@@ -91,23 +96,23 @@ export function NewRoastPage() {
         <Flex justify="space-between" align={{ base: 'flex-start', md: 'center' }} gap={4} direction={{ base: 'column', md: 'row' }}>
           <Stack spacing={1}>
             <Heading as="h1" size="xl">
-              Roast a repo 🔥
+              New roast
             </Heading>
-            <Text color="text.muted">Paste your assignment repo. Konjam spicy feedback varum, ready ah?</Text>
+            <Text color="text.muted">Paste a public GitHub repo, choose a tone and language, and get a scored review.</Text>
           </Stack>
           <QuotaBadge quota={quotaQuery.data} isLoading={quotaQuery.isLoading} />
         </Flex>
 
         {quotaExhausted && (
-          <Alert status="warning" borderRadius="xl">
+          <Alert status="warning" borderRadius="md">
             <AlertIcon />
             <AlertDescription>
-              Innaiku roast quota mudinjiduchu! Come back after the daily reset for more roasts.
+              You've used all of today's roasts. Your quota resets at 00:00 UTC.
             </AlertDescription>
           </Alert>
         )}
 
-        <GlassCard disableHover>
+        <SectionCard>
           <Stack as="form" spacing={6} onSubmit={(e) => void handleSubmit(e)} noValidate aria-label="New roast">
             <RepoUrlInput
               value={repoUrl}
@@ -117,6 +122,14 @@ export function NewRoastPage() {
               }}
               onBlur={() => setRepoTouched(true)}
               error={repoError}
+              isDisabled={isSubmitting}
+            />
+
+            <RoastModePicker
+              level={level}
+              language={language}
+              onLevelChange={setLevel}
+              onLanguageChange={setLanguage}
               isDisabled={isSubmitting}
             />
 
@@ -164,7 +177,7 @@ export function NewRoastPage() {
                 onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
               />
               <Flex justify="space-between">
-                <FormHelperText>Brief kudutha, roast inum accurate-ah irukkum.</FormHelperText>
+                <FormHelperText>Adding the brief lets the review check the actual requirements.</FormHelperText>
                 <FormHelperText id="description-counter" data-testid="description-counter">
                   {description.length} / {DESCRIPTION_MAX}
                 </FormHelperText>
@@ -172,13 +185,13 @@ export function NewRoastPage() {
             </FormControl>
 
             {formError && (
-              <Alert status="error" borderRadius="xl">
+              <Alert status="error" borderRadius="md">
                 <AlertIcon />
                 <AlertDescription>{formError}</AlertDescription>
               </Alert>
             )}
 
-            <GradientButton
+            <PrimaryButton
               type="submit"
               size="lg"
               w="full"
@@ -186,10 +199,10 @@ export function NewRoastPage() {
               loadingText="Starting roast…"
               isDisabled={quotaExhausted}
             >
-              🔥 Roast it
-            </GradientButton>
+              Roast it
+            </PrimaryButton>
           </Stack>
-        </GlassCard>
+        </SectionCard>
       </Stack>
     </PageWrapper>
   );

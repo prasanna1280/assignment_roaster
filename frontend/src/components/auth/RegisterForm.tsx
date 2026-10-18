@@ -13,7 +13,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { GradientButton } from '../ui/GradientButton';
+import { PrimaryButton } from '../ui/PrimaryButton';
 import { PasswordInput } from './PasswordInput';
 import { getRedirectPath } from './redirect';
 import { PASSWORD_MIN, validateEmail, validateFullName, validatePassword } from './validation';
@@ -97,7 +97,7 @@ export function RegisterForm() {
             id="register-email"
             type="email"
             autoComplete="email"
-            placeholder="nee@example.com"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -117,9 +117,9 @@ export function RegisterForm() {
             <FormHelperText>At least {PASSWORD_MIN} characters.</FormHelperText>
           )}
         </FormControl>
-        <GradientButton type="submit" w="full" isLoading={isSubmitting} loadingText="Creating account...">
-          Sign up pannunga
-        </GradientButton>
+        <PrimaryButton type="submit" w="full" isLoading={isSubmitting} loadingText="Creating account...">
+          Create account
+        </PrimaryButton>
       </Stack>
     </form>
   );

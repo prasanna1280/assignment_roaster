@@ -27,7 +27,7 @@ describe('LoginForm', () => {
   it('shows validation errors and does not call the API when empty', async () => {
     const loginSpy = vi.spyOn(authService, 'login');
     renderLogin();
-    await userEvent.click(screen.getByRole('button', { name: /login pannunga/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^log in$/i }));
 
     expect(await screen.findByText(/please enter your email/i)).toBeInTheDocument();
     expect(screen.getByText(/please enter your password/i)).toBeInTheDocument();
@@ -39,7 +39,7 @@ describe('LoginForm', () => {
     renderLogin();
     await userEvent.type(screen.getByLabelText(/email/i), 'not-an-email');
     await userEvent.type(screen.getByLabelText(/^password/i), 'secret123');
-    await userEvent.click(screen.getByRole('button', { name: /login pannunga/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^log in$/i }));
 
     expect(await screen.findByText(/valid email/i)).toBeInTheDocument();
     expect(loginSpy).not.toHaveBeenCalled();
@@ -52,7 +52,7 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'kavya@example.com');
     await userEvent.type(screen.getByLabelText(/^password/i), 'secret123');
-    await userEvent.click(screen.getByRole('button', { name: /login pannunga/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^log in$/i }));
 
     expect(await screen.findByText('Dashboard page')).toBeInTheDocument();
     expect(loginSpy).toHaveBeenCalledWith({ email: 'kavya@example.com', password: 'secret123' });
@@ -67,7 +67,7 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'kavya@example.com');
     await userEvent.type(screen.getByLabelText(/^password/i), 'secret123');
-    await userEvent.click(screen.getByRole('button', { name: /login pannunga/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^log in$/i }));
 
     expect(await screen.findByText('Submission 7 page')).toBeInTheDocument();
   });
@@ -80,9 +80,9 @@ describe('LoginForm', () => {
 
     await userEvent.type(screen.getByLabelText(/email/i), 'kavya@example.com');
     await userEvent.type(screen.getByLabelText(/^password/i), 'wrongpass');
-    await userEvent.click(screen.getByRole('button', { name: /login pannunga/i }));
+    await userEvent.click(screen.getByRole('button', { name: /^log in$/i }));
 
-    expect(await screen.findByText(/email or password thappu/i)).toBeInTheDocument();
+    expect(await screen.findByText(/incorrect email or password/i)).toBeInTheDocument();
     await waitFor(() => expect(tokenStorage.getAccessToken()).toBeNull());
   });
 });
@@ -97,8 +97,8 @@ describe('LoginPage', () => {
       </Routes>,
       { route: '/login?error=oauth_failed' },
     );
-    expect(screen.getByText(/google login fail aagiduchu/i)).toBeInTheDocument();
+    expect(screen.getByText(/google sign-in failed/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /sign up pannunga/i })).toHaveAttribute('href', '/register');
+    expect(screen.getByRole('link', { name: /^sign up$/i })).toHaveAttribute('href', '/register');
   });
 });

@@ -335,7 +335,8 @@ def test_mark_failed_unknown_code_uses_internal_message(db: Session) -> None:
     stored = db.get(Submission, sub.id)
     assert stored is not None
     assert stored.status == SubmissionStatus.failed
-    assert stored.error_message == submission_service.FRIENDLY_ERRORS["internal_error"]
+    expected = submission_service.friendly_error("internal_error", sub.roast_language)
+    assert stored.error_message == expected
     assert stored.completed_at is not None
 
 
