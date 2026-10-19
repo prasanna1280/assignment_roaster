@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assignment Roaster Workflow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --canvas: #f8fafc; --surface: #ffffff; --subtle: #f1f5f9;
+    --border: #e2e8f0; --border-strong: #cbd5e1;
+    --text: #0f172a; --muted: #475569; --faint: #64748b;
+    --navy: #2c4770; --navy-soft: #eef2f8;
+    --green: #15803d; --green-soft: #ecfdf3; --red: #b91c1c; --red-soft: #fef2f2;
+    --amber: #b45309;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1600px; height: 900px; overflow: hidden; }
+  body { background: var(--canvas); color: var(--text); font-family: 'Inter', system-ui, sans-serif; position: relative; }
+  .page { position: absolute; inset: 0; padding: 40px 60px 26px; display: flex; flex-direction: column; }
+
+  header { display: flex; justify-content: space-between; align-items: flex-end; }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .mark { width: 46px; height: 46px; border-radius: 10px; background: var(--navy); color: #fff;
+          display: grid; place-items: center; font-weight: 700; font-size: 18px; }
+  h1 { font-size: 36px; font-weight: 700; letter-spacing: -0.02em; }
+  .sub { font-size: 18px; color: var(--muted); margin-top: 4px; }
+  .url { font-size: 16px; font-weight: 600; color: var(--navy); }
+
+  /* 8-column flow grid: col width 166, gap 22 => 1480 */
+  .grid { display: grid; grid-template-columns: repeat(8, 166px); column-gap: 22px; }
+  .lanes { margin-top: 26px; }
+  .lane { height: 26px; border-radius: 6px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.09em;
+          display: grid; place-items: center; border: 1px solid; }
+  .q { grid-column: 1 / span 2; color: #475569; background: #f1f5f9; border-color: #cbd5e1; }
+  .f { grid-column: 3 / span 2; color: #1d4ed8; background: #eff6ff; border-color: #bfdbfe; }
+  .a { grid-column: 5 / span 2; color: #6d28d9; background: #f5f3ff; border-color: #ddd6fe; }
+  .c { grid-column: 7 / span 2; color: var(--green); background: var(--green-soft); border-color: #bbf7d0; }
+
+  .steps { margin-top: 12px; }
+  .step { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+          padding: 14px 14px 12px; box-shadow: 0 1px 2px rgba(15,23,42,0.04); }
+  .step.key { border: 2px solid var(--navy); }
+  .step.done { border: 2px solid var(--green); background: var(--green-soft); }
+  .n { width: 24px; height: 24px; border-radius: 6px; background: var(--navy); color: #fff;
+       font-size: 13px; font-weight: 700; display: grid; place-items: center; margin-bottom: 8px; }
+  .done .n { background: var(--green); }
+  .step h3 { font-size: 16.5px; font-weight: 600; line-height: 1.25; margin-bottom: 6px; }
+  .step p { font-size: 13.5px; line-height: 1.4; color: var(--muted); }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: var(--subtle);
+         padding: 0 4px; border-radius: 3px; color: var(--text); }
+
+  /* Outcome row under the flow */
+  .outcomes { margin-top: 58px; align-items: stretch; }
+  .reject { grid-column: 2 / span 1; }
+  .fail { grid-column: 3 / span 4; }
+  .live { grid-column: 7 / span 2; }
+  .box-live { border: 1.5px solid #bbf7d0; background: var(--green-soft); border-radius: 10px; padding: 11px 16px; height: 100%; }
+  .box-live b { color: var(--green); }
+  .box-dashed { height: 100%; border: 1.5px dashed var(--border-strong); border-radius: 10px; background: var(--surface);
+                padding: 11px 14px; }
+  .box-fail { border: 1.5px solid #fecaca; background: var(--red-soft); border-radius: 10px; padding: 11px 16px; }
+  .box-dashed b, .box-fail b, .box-live b { font-size: 15px; font-weight: 600; display: block; margin-bottom: 4px; }
+  .box-fail b { color: var(--red); }
+  .box-dashed span, .box-fail span, .box-live span { font-size: 13.5px; color: var(--muted); }
+
+  /* Bottom panels */
+  .panels { margin-top: 24px; display: grid; grid-template-columns: 600px 1fr 1fr; gap: 22px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; }
+  .panel h4 { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); margin-bottom: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th { text-align: left; font-weight: 600; color: var(--text); padding: 0 0 8px; font-size: 14px; }
+  td { padding: 5px 8px 5px 0; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+  td:first-child { color: var(--text); font-weight: 600; width: 92px; }
+  td.sample { font-style: italic; color: #334155; }
+  ul { list-style: none; }
+  li { font-size: 15px; line-height: 1.35; color: var(--muted); padding-left: 20px; position: relative; margin-bottom: 9px; }
+  li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 8px; height: 8px; border-radius: 2px; background: var(--navy); }
+  li b { color: var(--text); font-weight: 600; }
+
+  footer { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+  .chips { display: flex; gap: 8px; }
+  .chip { font-size: 14px; font-weight: 500; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 6px; background: var(--surface); color: var(--text); }
+  .note { font-size: 13px; color: var(--faint); }
+
+  svg.wires { position: absolute; left: 0; top: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div class="brand">
+      <div class="mark">AR</div>
+      <div>
+        <h1>How Assignment Roaster works</h1>
+        <div class="sub">From a public GitHub link to a scored, honest code review in English, Tamil or Tanglish</div>
+      </div>
+    </div>
+    <div class="url">roaster.prasanna.digital</div>
+  </header>
+
+  <div class="grid lanes">
+    <div class="lane q">QUEUED</div><div class="lane f">FETCHING</div>
+    <div class="lane a">ANALYZING</div><div class="lane c">COMPLETED</div>
+  </div>
+
+  <div class="grid steps">
+    <div class="step"><div class="n">1</div><h3>Submit a repo</h3>
+      <p>Paste a public GitHub link, optional assignment brief, pick roast level and language</p></div>
+    <div class="step"><div class="n">2</div><h3>Validate request</h3>
+      <p>FastAPI checks the URL and daily quota, returns <code>202</code> and queues the roast</p></div>
+    <div class="step"><div class="n">3</div><h3>Fetch from GitHub</h3>
+      <p>Repo metadata, commit SHA and tarball. Public repos only, no GitHub login</p></div>
+    <div class="step"><div class="n">4</div><h3>Filter and mask</h3>
+      <p>Skip junk and binaries, cap 150 files / 200 KB, mask API keys as <code>***MASKED***</code></p></div>
+    <div class="step key"><div class="n">5</div><h3>AI review</h3>
+      <p>GPT-5.5 with Structured Outputs. Scores first as a neutral reviewer, then writes in the chosen tone</p></div>
+    <div class="step"><div class="n">6</div><h3>Validate output</h3>
+      <p>Pydantic checks scores, real file paths and list sizes. One retry on bad output</p></div>
+    <div class="step"><div class="n">7</div><h3>Save</h3>
+      <p>PostgreSQL stores the roast, mode, model used and token counts for the admin panel</p></div>
+    <div class="step done"><div class="n">8</div><h3>Report</h3>
+      <p>Score ring, 6 categories, roast, fixes by priority. Download PDF or copy as checklist</p></div>
+  </div>
+
+  <div class="grid outcomes">
+    <div class="reject box-dashed"><b>Rejected instantly</b><span><code>400</code> invalid URL<br><code>429</code> quota used up</span></div>
+    <div class="fail box-fail"><b>Failed, kindly</b><span>Private repo, too large, empty or invalid AI output: a friendly message in the student's language, technical details logged server-side</span></div>
+    <div class="live box-live"><b>Live progress</b><span>The report page polls every 2 seconds through each status, no refresh needed</span></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <h4>Choose your roast · same rubric at every level</h4>
+      <table>
+        <tr><th></th><th>Tone</th><th>Sample headline</th></tr>
+        <tr><td>Lite</td><td>Gentle mentor</td><td class="sample">"Good structure; a few tests would make it shine."</td></tr>
+        <tr><td>Medium</td><td>Classic roast</td><td class="sample">"Tiny static page, but the missing image is doing the loudest talking."</td></tr>
+        <tr><td>Spicy</td><td>Loud jokes, never personal</td><td class="sample">"Page load aagum, aana forkit.gif ghost madhiri vanish aagidum machaan!"</td></tr>
+        <tr><td>Language</td><td colspan="2">English · Tamil (Tamil script) · Tanglish</td></tr>
+      </table>
+    </div>
+    <div class="panel">
+      <h4>Safety by design</h4>
+      <ul>
+        <li><b>Code is never run.</b> Repos are read as plain text only</li>
+        <li><b>Secrets masked</b> before anything reaches the AI</li>
+        <li><b>Prompt injection ignored:</b> repo content is marked untrusted data</li>
+        <li><b>Roasts the code, never the person.</b> No profanity, PG and kind</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h4>Built with</h4>
+      <ul>
+        <li><b>Backend:</b> FastAPI, SQLAlchemy, Alembic, PostgreSQL</li>
+        <li><b>Frontend:</b> React, TypeScript, Vite, Chakra UI</li>
+        <li><b>AI:</b> OpenAI Structured Outputs + Pydantic validation</li>
+        <li><b>Ops:</b> Docker Compose on a VPS, Traefik HTTPS, GitHub Actions CI</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="chips">
+      <span class="chip">276 backend tests</span><span class="chip">68 frontend tests</span>
+      <span class="chip">Tested on iPhone, iPad, Android</span><span class="chip">Google sign-in</span>
+    </div>
+    <div class="note">Student code is read as text, never executed</div>
+  </footer>
+</div>
+
+<svg class="wires" width="1600" height="900" viewBox="0 0 1600 900" id="wires">
+  <defs>
+    <marker id="n" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#2c4770"/></marker>
+    <marker id="r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b91c1c"/></marker>
+    <marker id="g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#64748b"/></marker>
+    <marker id="o" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#b45309"/></marker>
+  </defs>
+</svg>
+<script>
+// Draw connectors from the real layout so they always line up with the boxes.
+document.fonts.ready.then(() => {
+  const svg = document.getElementById('wires');
+  const steps = [...document.querySelectorAll('.steps .step')].map(e => e.getBoundingClientRect());
+  const fail = document.querySelector('.box-fail').getBoundingClientRect();
+  const reject = document.querySelector('.box-dashed').getBoundingClientRect();
+  const add = (d, stroke, marker, dash) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d); p.setAttribute('fill', 'none'); p.setAttribute('stroke', stroke);
+    p.setAttribute('stroke-width', '2'); p.setAttribute('marker-end', `url(#${marker})`);
+    if (dash) p.setAttribute('stroke-dasharray', '5 4');
+    svg.appendChild(p);
+  };
+  const cx = r => r.left + r.width / 2;
+  const mid = steps[0].top + steps[0].height / 2;
+  const bottom = steps[0].bottom;
+  for (let i = 0; i < steps.length - 1; i++) add(`M${steps[i].right + 3} ${mid} H${steps[i + 1].left - 3}`, '#2c4770', 'n');
+  add(`M${cx(steps[1])} ${bottom + 3} V${reject.top - 3}`, '#64748b', 'g', true);
+  for (const i of [2, 3]) add(`M${cx(steps[i])} ${bottom + 3} V${fail.top - 3}`, '#b91c1c', 'r');
+  add(`M${cx(steps[5]) + 28} ${bottom + 3} V${fail.top - 3}`, '#b91c1c', 'r');
+  const loopY = bottom + 22;
+  add(`M${cx(steps[5]) - 28} ${bottom + 3} V${loopY} H${cx(steps[4]) + 28} V${bottom + 5}`, '#b45309', 'o', true);
+  const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  t.setAttribute('x', (cx(steps[4]) + cx(steps[5])) / 2); t.setAttribute('y', loopY + 16);
+  t.setAttribute('text-anchor', 'middle'); t.setAttribute('font-family', 'Inter'); t.setAttribute('font-size', '12');
+  t.setAttribute('font-weight', '600'); t.setAttribute('fill', '#b45309'); t.textContent = 'retry once';
+  svg.appendChild(t);
+});
+</script>
+</body>
+</html>
