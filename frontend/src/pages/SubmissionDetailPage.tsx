@@ -57,6 +57,7 @@ import {
   twoColumnsWhenPrinting,
 } from '../lib/print';
 import { roastLanguageLabel, roastLevelLabel } from '../lib/roastModes';
+import { touchTarget } from '../lib/touch';
 import { getErrorMessage } from '../services/api';
 import type { ReroastOptions, Roast, Submission } from '../types';
 
@@ -110,6 +111,7 @@ function RepoHeader({ submission }: { submission: Submission }) {
           rel="noopener noreferrer"
           color="accent.fg"
           fontFamily="mono"
+          sx={touchTarget}
           display="inline-flex"
           alignItems="center"
           gap={1}

@@ -48,7 +48,10 @@ export function SubmissionCard({ submission }: SubmissionCardProps) {
             </HStack>
           </Stack>
           {showScore && roast ? (
-            <ScoreRing score={roast.overall_score} size={64} thickness={6} label={`Score for ${repoName}`} />
+            // Purely visual: let taps fall through to the card-wide link overlay.
+            <Box pointerEvents="none">
+              <ScoreRing score={roast.overall_score} size={64} thickness={6} label={`Score for ${repoName}`} />
+            </Box>
           ) : (
             <Box w="64px" textAlign="center" color={submission.status === 'failed' ? 'severity.high' : 'text.muted'} aria-hidden="true">
               <Icon as={submission.status === 'failed' ? FiAlertCircle : FiClock} boxSize={6} />

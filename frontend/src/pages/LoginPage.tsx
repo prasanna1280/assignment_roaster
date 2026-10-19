@@ -2,6 +2,7 @@ import { Link as RouterLink, useLocation, useSearchParams } from 'react-router-d
 import { Alert, AlertDescription, AlertIcon, Flex, Link, Stack, Text } from '@chakra-ui/react';
 import { PageWrapper } from '../components/ui/PageWrapper';
 import { AuthCard } from '../components/auth/AuthCard';
+import { touchTarget } from '../lib/touch';
 import { LoginForm } from '../components/auth/LoginForm';
 import { GoogleLoginButton } from '../components/auth/GoogleLoginButton';
 import { OrDivider } from '../components/auth/OrDivider';
@@ -43,7 +44,7 @@ export function LoginPage() {
           )}
           <LoginForm />
           <Flex justify="flex-end">
-            <Link as={RouterLink} to="/forgot-password" fontSize="sm" color="accent.fg">
+            <Link as={RouterLink} to="/forgot-password" fontSize="sm" color="accent.fg" sx={touchTarget}>
               Forgot password?
             </Link>
           </Flex>

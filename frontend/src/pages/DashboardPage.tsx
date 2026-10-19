@@ -24,6 +24,7 @@ import { QuotaBadge } from '../components/roast/QuotaBadge';
 import { formatScore, scoreColorToken, toScore } from '../components/roast/roastUtils';
 import { useQuota, useSubmissionsList } from '../hooks/useSubmissions';
 import { useAuth } from '../hooks/useAuth';
+import { touchTarget } from '../lib/touch';
 import { getErrorMessage } from '../services/api';
 import type { Submission } from '../types';
 
@@ -123,7 +124,7 @@ export function DashboardPage() {
               Recent roasts
             </Heading>
             {recent.length > 0 && (
-              <Link as={RouterLink} to="/submissions" color="accent.fg" fontWeight="semibold">
+              <Link as={RouterLink} to="/submissions" color="accent.fg" fontWeight="semibold" sx={touchTarget}>
                 View all →
               </Link>
             )}

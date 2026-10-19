@@ -21,7 +21,7 @@ export function SeverityBadge({ severity }: { severity: Severity }) {
       borderRadius="md"
       px={2}
       textTransform="uppercase"
-      fontSize="0.7em"
+      fontSize="xs"
     >
       {SEVERITY_LABELS[severity]}
     </Badge>
