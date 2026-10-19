@@ -105,12 +105,16 @@ export function Navbar() {
           {/* Desktop */}
           <HStack spacing={6} display={{ base: 'none', md: 'flex' }}>
             {isAuthenticated && (
-              <HStack as="nav" aria-label="Main" spacing={6}>
+              <HStack as="nav" aria-label="Main" spacing={4}>
                 {navItems.map((item) => (
                   <Link
                     key={item.to}
                     as={NavLink}
                     to={item.to}
+                    display="inline-flex"
+                    alignItems="center"
+                    minH="40px"
+                    px={1}
                     fontWeight="medium"
                     fontSize="sm"
                     color="text.muted"
